@@ -109,7 +109,6 @@ The SQLite database file (`database/todo.db`) is created automatically on first 
 - [ ] Data persistence across restarts
 - [ ] Undo option when deleting
 - [ ] Filter and sort
-- [ ] Built-in calendar view
 
 ## Data Operations
 
