@@ -69,8 +69,14 @@ def edit_task(task_id):
     db.execute("UPDATE tasks SET title = ?, due_date = ?, priority = ?, tag = ? WHERE id = ?", (title, due_date, priority, tag, task_id))
     db.commit()
     return redirect(url_for("index"))
-    
-    
+
+@app.route("/delete/<int:task_id>", methods=["POST"])
+def delete_task(task_id):
+    db = get_db()
+    db.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+    db.commit()
+    return redirect(url_for("index"))
+
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)
