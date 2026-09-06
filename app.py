@@ -31,7 +31,7 @@ def init_db():
 def index():
     db = get_db()
     tasks = db.execute("SELECT * FROM tasks ORDER BY created_at DESC").fetchall()
-    return "<br>".join([f"{row['title']} - {row['is_done']}" for row in tasks])    
+    return "<br>".join([f"{row['id']} | {row['title']} | {row['priority']} | done={row['is_done']}" for row in tasks])
 
 @app.route("/add", methods=["POST"])
 def add_task():
@@ -51,6 +51,12 @@ def toggle_task(task_id):
     db.execute("UPDATE tasks SET is_done = NOT is_done WHERE id = ?", (task_id,))
     db.commit()
     return redirect(url_for("index"))
+
+@app.route("/edit/<int:task_id>", methods=["GET"])
+def edit_task_form(task_id):
+    db = get_db()
+    task = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
+    return f"{task['title']} - {task['priority']}"
     
 if __name__ == "__main__":
     init_db()
