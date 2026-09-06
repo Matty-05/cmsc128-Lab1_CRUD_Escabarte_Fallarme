@@ -33,6 +33,18 @@ def index():
     tasks = db.execute("SELECT * FROM tasks ORDER BY created_at DESC").fetchall()
     return "<br>".join([f"{row['title']}" for row in tasks])    
 
+@app.route("/add", methods=["POST"])
+def add_task():
+    db = get_db()
+    title = request.form["title"]
+    due_date = request.form["due_date"]
+    priority = request.form["priority"]
+    tag = request.form["tag"]
+
+    db.execute("INSERT INTO tasks (title, due_date, priority, tag) VALUES (?, ?, ?, ?)", (title, due_date, priority, tag))
+    db.commit()
+    return redirect(url_for("index"))
+
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)
