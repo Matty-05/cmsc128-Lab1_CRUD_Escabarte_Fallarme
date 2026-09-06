@@ -27,6 +27,12 @@ def init_db():
             db.executescript(f.read())
         db.commit()
 
+@app.route("/")
+def index():
+    db = get_db()
+    tasks = db.execute("SELECT * FROM tasks ORDER BY created_at DESC").fetchall()
+    return "<br>".join([f"{row['title']}" for row in tasks])    
+
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)
