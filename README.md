@@ -6,7 +6,7 @@ A simple To-Do List web application implementing the four basic CRUD operations,
 
 ## Authors
 
-- Ralph Ryan T. Escabarte (RalphRE)
+- Ralph Ryan T. Escabarte (RalphREE)
 - John Matthew N. Fallarme (Matty-05)
 
 ## Tech Stack
