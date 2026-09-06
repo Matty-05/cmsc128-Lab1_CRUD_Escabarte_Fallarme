@@ -57,6 +57,19 @@ def edit_task_form(task_id):
     db = get_db()
     task = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
     return f"{task['title']} - {task['priority']}"
+
+@app.route("/edit/<int:task_id>", methods=["POST"])
+def edit_task(task_id):
+    db = get_db()
+    title = request.form["title"]
+    due_date = request.form["due_date"]
+    priority = request.form["priority"]
+    tag = request.form["tag"]
+
+    db.execute("UPDATE tasks SET title = ?, due_date = ?, priority = ?, tag = ? WHERE id = ?", (title, due_date, priority, tag, task_id))
+    db.commit()
+    return redirect(url_for("index"))
+    
     
 if __name__ == "__main__":
     init_db()
