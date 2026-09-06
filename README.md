@@ -53,8 +53,8 @@ to set up.
 Clone the repository and move into it:
 
 ```bash
-git clone <repository-url>
-cd <repository-name>
+git clone https://github.com/Matty-05/cmsc128-Lab1_CRUD_Escabarte_Fallarme
+cd cmsc128-Lab1_CRUD_Escabarte_Fallarme
 ```
 
 Create and activate a virtual environment:
