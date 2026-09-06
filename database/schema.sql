@@ -1,0 +1,1 @@
+-- Schema for the To-Do List CRUD app (CMSC 128 Lab 1)
