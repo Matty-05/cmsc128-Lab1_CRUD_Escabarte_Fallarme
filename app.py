@@ -31,7 +31,7 @@ def init_db():
 def index():
     db = get_db()
     tasks = db.execute("SELECT * FROM tasks ORDER BY created_at DESC").fetchall()
-    return "<br>".join([f"{row['id']} | {row['title']} | {row['priority']} | done={row['is_done']}" for row in tasks])
+    return render_template("index.html", tasks=tasks)
 
 @app.route("/add", methods=["POST"])
 def add_task():
@@ -56,7 +56,7 @@ def toggle_task(task_id):
 def edit_task_form(task_id):
     db = get_db()
     task = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
-    return f"{task['title']} - {task['priority']}"
+    return render_template("edit.html", task=task)
 
 @app.route("/edit/<int:task_id>", methods=["POST"])
 def edit_task(task_id):
