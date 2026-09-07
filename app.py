@@ -5,6 +5,7 @@ from flask import Flask, g, render_template, request, redirect, url_for
 BASE_DIR = Path(__file__).resolve().parent
 DATABASE = BASE_DIR / "database" / "todo.db"
 SCHEMA = BASE_DIR / "database" / "schema.sql"
+allowed = {"created_at", "due_date", "priority", "tag", "title"}
 app = Flask(__name__)
 
 def get_db():
@@ -30,7 +31,10 @@ def init_db():
 @app.route("/")
 def index():
     db = get_db()
-    tasks = db.execute("SELECT * FROM tasks ORDER BY created_at DESC").fetchall()
+    sort_by = request.args.get("sort_by", "created_at")         
+    if sort_by not in allowed:
+        sort_by = "created_at"
+    tasks = db.execute(f"SELECT * FROM tasks ORDER BY {sort_by} DESC").fetchall()
     return render_template("index.html", tasks=tasks)
 
 @app.route("/add", methods=["POST"])
