@@ -1,1 +1,172 @@
-<!-- To Be Implemented -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>To-Do List &middot; CMSC 128 Lab 1</title>
+  <link rel="stylesheet" href="../static/css/style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>My To-Do List</h1>
+    <p class="subtitle">CMSC 128 Lab 1 &middot; Escabarte &amp; Fallarme</p>
+  </header>
+
+  <main class="layout">
+    <!-- CREATE / UPDATE form. The same form does both: when #task-id has a value the JS sends a PATCH instead of a POST. -->
+
+    <section class="panel" aria-labelledby="form-heading">
+      <h2 id="form-heading">Add a task</h2>
+
+      <form id="task-form" novalidate>
+        <input type="hidden" id="task-id" />
+
+        <div class="field">
+          <label for="title">Title <span class="required">*</span></label>
+          <input type="text" id="title" name="title" maxlength="200"
+                 placeholder="e.g. Finish CMSC 128 lab report" required />
+        </div>
+
+        <div class="field">
+          <label for="due-date">Due date &amp; time</label>
+          <input type="datetime-local" id="due-date" name="due_date" />
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="priority">Priority</label>
+            <select id="priority" name="priority">
+              <option value="Low">Low</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="tag">Tag</label>
+            <select id="tag" name="tag">
+              <option value="School">School</option>
+              <option value="Personal">Personal</option>
+              <option value="Others" selected>Others</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Inline validation feedback (HCI: errors shown next to the form). -->
+        <p id="form-error" class="form-error" role="alert" hidden></p>
+
+        <div class="form-actions">
+          <button type="submit" id="submit-btn" class="btn btn-primary">Add task</button>
+          <button type="button" id="cancel-edit-btn" class="btn btn-ghost" hidden>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- READ: filter/sort controls + the task list itself. -->
+    <section class="panel" aria-labelledby="list-heading">
+      <div class="list-header">
+        <h2 id="list-heading">Tasks</h2>
+        <span id="task-count" class="task-count"></span>
+      </div>
+
+      <div class="controls">
+        <div class="field">
+          <label for="sort-by">Sort by</label>
+          <select id="sort-by">
+            <option value="created_at">Date added</option>
+            <option value="due_date">Due date</option>
+            <option value="priority">Priority</option>
+            <option value="tag">Tag</option>
+            <option value="title">Title</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="sort-order">Order</label>
+          <select id="sort-order">
+            <option value="desc">Descending</option>
+            <option value="asc">Ascending</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="filter-tag">Filter by tag</label>
+          <select id="filter-tag">
+            <option value="">All tags</option>
+            <option value="School">School</option>
+            <option value="Personal">Personal</option>
+            <option value="Others">Others</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="filter-priority">Filter by priority</label>
+          <select id="filter-priority">
+            <option value="">All priorities</option>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+        </div>
+      </div>
+
+    <ul id="task-list" class="task-list">
+        <li class="task-item">
+            <input type="checkbox" />
+            <div class="task-body">
+            <div class="task-title">Finish CMSC 128 lab report</div>
+            <div class="task-meta">
+                <span class="badge priority-High">High</span>
+                <span class="badge">School</span>
+                <span class="badge overdue">Overdue</span>
+            </div>
+            </div>
+            <div class="task-actions">
+            <button class="icon-btn">Edit</button>
+            <button class="icon-btn delete">Delete</button>
+            </div>
+        </li>
+
+        <li class="task-item done">
+            <input type="checkbox" checked />
+            <div class="task-body">
+            <div class="task-title">Buy groceries</div>
+            <div class="task-meta">
+                <span class="badge priority-Low">Low</span>
+                <span class="badge">Personal</span>
+            </div>
+            </div>
+            <div class="task-actions">
+            <button class="icon-btn">Edit</button>
+            <button class="icon-btn delete">Delete</button>
+            </div>
+        </li>
+    </ul>
+
+      <p id="empty-state" class="empty-state" hidden>
+        No tasks yet. Add one using the form.
+      </p>
+    </section>
+  </main>
+
+  <!-- Delete confirmation dialog (required by the spec). <dialog> gives us focus trapping and Esc-to-close for free. -->
+  <dialog id="confirm-dialog" class="dialog">
+    <h2>Delete task?</h2>
+    <p>Are you sure you want to delete "<span id="confirm-title"></span>"?</p>
+    <div class="form-actions">
+      <button type="button" id="confirm-cancel" class="btn btn-ghost">Cancel</button>
+      <button type="button" id="confirm-delete" class="btn btn-danger">Delete</button>
+    </div>
+  </dialog>
+
+  <!-- Toast / snackbar. Also the anchor for the optional Undo feature. -->
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden>
+    <span id="toast-message"></span>
+    <button type="button" id="toast-action" class="toast-action" hidden>Undo</button>
+  </div>
+
+
+</body>
+</html>

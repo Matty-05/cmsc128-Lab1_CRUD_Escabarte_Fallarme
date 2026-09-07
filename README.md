@@ -2,11 +2,11 @@
 
 A simple To-Do List web application implementing the four basic CRUD operations, built for CMSC 128 Laboratory Activity 1.
 
-**Status:** project setup complete. Application code is not yet implemented.
+**Status:** In progress. Backend routes and database schema implemented. Frontend templates to be merged.
 
 ## Authors
 
-- Ralph Ryan T. Escabarte (RalphRE)
+- Ralph Ryan T. Escabarte (RalphREE)
 - John Matthew N. Fallarme (Matty-05)
 
 ## Tech Stack
@@ -53,8 +53,8 @@ to set up.
 Clone the repository and move into it:
 
 ```bash
-git clone <repository-url>
-cd <repository-name>
+git clone https://github.com/Matty-05/cmsc128-Lab1_CRUD_Escabarte_Fallarme
+cd cmsc128-Lab1_CRUD_Escabarte_Fallarme
 ```
 
 Create and activate a virtual environment:
@@ -106,13 +106,20 @@ The SQLite database file (`database/todo.db`) is created automatically on first 
 - [ ] Edit task
 - [ ] Delete task with confirmation dialog
 - [ ] Mark task as done
-- [ ] Data persistence across restarts
+- [x] Data persistence across restarts
 - [ ] Undo option when deleting
 - [ ] Filter and sort
 
 ## Data Operations
 
-To Be Implemented
+| Method | Route            | Function         | Description                    |
+| ------ | ---------------- | ---------------- | ------------------------------ |
+| GET    | `/`              | `index`          | List all tasks                 |
+| POST   | `/add`           | `add_task`       | Create a new task              |
+| GET    | `/edit/<id>`     | `edit_task_form` | Fetch one task for editing     |
+| POST   | `/edit/<id>`     | `edit_task`      | Update an existing task        |
+| POST   | `/toggle/<id>`   | `toggle_task`    | Mark a task done or not done   |
+| POST   | `/delete/<id>`   | `delete_task`    | Delete a task                  |
 
 ## Screenshots
 
