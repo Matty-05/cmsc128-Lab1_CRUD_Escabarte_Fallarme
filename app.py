@@ -31,10 +31,16 @@ def init_db():
 @app.route("/")
 def index():
     db = get_db()
-    sort_by = request.args.get("sort_by", "created_at")         
+    sort_by = request.args.get("sort_by", "created_at")
+    sort_order = request.args.get("sort_order", "desc")
+
+    if (sort_order != "desc" and sort_order != "asc"):
+        sort_order = "desc"
+
     if sort_by not in allowed:
         sort_by = "created_at"
-    tasks = db.execute(f"SELECT * FROM tasks ORDER BY {sort_by} DESC").fetchall()
+
+    tasks = db.execute(f"SELECT * FROM tasks ORDER BY {sort_by} {sort_order}").fetchall()
     return render_template("index.html", tasks=tasks)
 
 @app.route("/add", methods=["POST"])
