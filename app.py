@@ -5,7 +5,13 @@ from flask import Flask, g, render_template, request, redirect, url_for
 BASE_DIR = Path(__file__).resolve().parent
 DATABASE = BASE_DIR / "database" / "todo.db"
 SCHEMA = BASE_DIR / "database" / "schema.sql"
-allowed = {"created_at", "due_date", "priority", "tag", "title"}
+SORT_COLUMNS = {
+    "created_at": "created_at",
+    "due_date": "due_date",
+    "title": "title",
+    "tag": "tag",
+    "priority": "CASE priority WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 WHEN 'Low' THEN 3 END",
+}
 app = Flask(__name__)
 
 def get_db():
@@ -37,11 +43,13 @@ def index():
     if (sort_order != "desc" and sort_order != "asc"):
         sort_order = "desc"
 
-    if sort_by not in allowed:
+    if sort_by not in SORT_COLUMNS:
         sort_by = "created_at"
+    order_expression = SORT_COLUMNS[sort_by]
 
-    tasks = db.execute(f"SELECT * FROM tasks ORDER BY {sort_by} {sort_order}").fetchall()
+    tasks = db.execute(f"SELECT * FROM tasks ORDER BY {order_expression} {sort_order}").fetchall()
     return render_template("index.html", tasks=tasks)
+    # For testing purposes -> return "<br>".join([f"{row['id']} | {row['title']} | {row['priority']} | done={row['is_done']}" for row in tasks])
 
 @app.route("/add", methods=["POST"])
 def add_task():
