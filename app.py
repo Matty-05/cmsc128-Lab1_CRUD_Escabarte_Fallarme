@@ -40,6 +40,22 @@ def index():
     sort_by = request.args.get("sort_by", "created_at")
     sort_order = request.args.get("sort_order", "desc")
 
+    filter_tag = request.args.get("filter_tag", "")
+    filter_priority = request.args.get("filter_priority", "")
+
+    condition_strings = []
+    parameter_values = []
+
+    if filter_tag: 
+        condition_strings.append("tag = ?")
+        parameter_values.append(filter_tag)
+
+    if filter_priority:
+        condition_strings.append("priority = ?")
+        parameter_values.append(filter_priority)
+
+    where_clause = "WHERE " + " AND ".join(condition_strings) if condition_strings else ""
+    
     if (sort_order != "desc" and sort_order != "asc"):
         sort_order = "desc"
 
@@ -47,9 +63,9 @@ def index():
         sort_by = "created_at"
     order_expression = SORT_COLUMNS[sort_by]
 
-    tasks = db.execute(f"SELECT * FROM tasks ORDER BY {order_expression} {sort_order}").fetchall()
+    tasks = db.execute(f"SELECT * FROM tasks {where_clause} ORDER BY {order_expression} {sort_order}", parameter_values).fetchall()
     return render_template("index.html", tasks=tasks)
-    # For testing purposes -> return "<br>".join([f"{row['id']} | {row['title']} | {row['priority']} | done={row['is_done']}" for row in tasks])
+    # return "<br>".join([f"{row['id']} | {row['title']} | {row['priority']} | done={row['is_done']}" for row in tasks])
 
 @app.route("/add", methods=["POST"])
 def add_task():
