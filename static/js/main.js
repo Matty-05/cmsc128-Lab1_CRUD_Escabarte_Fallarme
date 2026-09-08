@@ -1,5 +1,4 @@
  (function () {
-      // Mark overdue tasks client-side, since "is_overdue" is not a DB column.
       function markOverdueTasks() {
         var now = new Date();
         document.querySelectorAll('.task-item').forEach(function (item) {
@@ -51,7 +50,6 @@
           form.addEventListener('submit', function (e) {
             e.preventDefault();
 
-            // If another delete is already pending, commit it right away first.
             if (pending) finalizePending();
 
             var item = form.closest('.task-item');
