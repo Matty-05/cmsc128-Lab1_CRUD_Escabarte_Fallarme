@@ -33,7 +33,7 @@ to set up.
 ├── database/
 │   └── schema.sql          # SQLite table definitions
 ├── templates/              # Jinja2 HTML templates
-│   ├── base.html           # Shared page layout
+│   ├── _tasks_panel.html   # filter and sort 
 │   ├── index.html          # Task list + add-task form
 │   └── edit.html           # Edit-task form
 └── static/
