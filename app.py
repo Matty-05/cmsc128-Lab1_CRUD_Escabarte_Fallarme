@@ -8,7 +8,7 @@ SCHEMA = BASE_DIR / "database" / "schema.sql"
 SORT_COLUMNS = {
     "created_at": "created_at",
     "due_date": "due_date",
-    "title": "title",
+    "title": "title COLLATE NOCASE",
     "tag": "tag",
     "priority": "CASE priority WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 WHEN 'Low' THEN 3 END",
 }
