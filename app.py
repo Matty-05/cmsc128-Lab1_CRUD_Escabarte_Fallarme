@@ -74,7 +74,10 @@ def index():
 @app.route("/add", methods=["POST"])
 def add_task():
     db = get_db()
-    title = request.form["title"]
+    title = request.form["title"].strip()
+    if not title:
+        return redirect_to_index()
+
     due_date = request.form["due_date"]
     priority = request.form["priority"]
     tag = request.form["tag"]
@@ -99,7 +102,10 @@ def edit_task_form(task_id):
 @app.route("/edit/<int:task_id>", methods=["POST"])
 def edit_task(task_id):
     db = get_db()
-    title = request.form["title"]
+    title = request.form["title"].strip()
+    if not title:
+        return redirect(url_for("edit_task_form", task_id=task_id, **request.args))
+
     due_date = request.form["due_date"]
     priority = request.form["priority"]
     tag = request.form["tag"]
