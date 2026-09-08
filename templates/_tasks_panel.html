@@ -5,7 +5,7 @@
         <span id="task-count" class="task-count">{{ tasks|length }} task(s)</span>
       </div>
 
-      <form id="filter-form" method="GET" action="{{ url_for('index') }}">
+      <form id="filter-form" method="GET" action="{{ request.path }}">
         <fieldset class="filter-form">
           <legend>Filter &amp; sort</legend>
 
@@ -50,7 +50,7 @@
 
           <div class="form-actions filter-actions">
             <button type="submit" class="btn btn-secondary">Apply</button>
-            <a href="{{ url_for('index') }}" class="btn btn-ghost">Reset</a>
+            <a href="{{ request.path }}" class="btn btn-ghost">Reset</a>
           </div>
         </fieldset>
       </form>
