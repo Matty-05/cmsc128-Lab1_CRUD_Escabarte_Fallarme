@@ -72,7 +72,7 @@
                 <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
                 <span class="badge">{{ task.tag }}</span>
                 {% if task.due_date %}
-                  <time class="task-due-date" datetime="{{ task.due_date }}">Due: {{ task.due_date }}</time>
+                  <time class="task-due-date" datetime="{{ task.due_date }}">Due: {{ task.due_date | format_due }}</time>
                 {% endif %}
               </div>
             </div>

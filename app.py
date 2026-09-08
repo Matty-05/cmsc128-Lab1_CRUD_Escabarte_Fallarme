@@ -1,4 +1,5 @@
 import sqlite3 
+from datetime import datetime
 from pathlib import Path
 from flask import Flask, g, render_template, request, redirect, url_for
 
@@ -36,6 +37,15 @@ def init_db():
 
 def redirect_to_index():
     return redirect(url_for("index", **request.args))
+
+@app.template_filter("format_due")
+def format_due(value):
+    try:
+        due = datetime.fromisoformat(value)
+    except (TypeError, ValueError):
+        return value
+    time = due.strftime("%I:%M %p").lstrip("0")
+    return f"{due:%b} {due.day}, {due.year}, {time}"
 
 def get_filtered_tasks():
     db = get_db()
