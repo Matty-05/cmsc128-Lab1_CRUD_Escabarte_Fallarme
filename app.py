@@ -1,7 +1,7 @@
 import sqlite3 
 from datetime import datetime
 from pathlib import Path
-from flask import Flask, g, render_template, request, redirect, url_for
+from flask import Flask, abort, g, render_template, request, redirect, url_for
 
 BASE_DIR = Path(__file__).resolve().parent
 DATABASE = BASE_DIR / "database" / "todo.db"
@@ -107,6 +107,8 @@ def toggle_task(task_id):
 def edit_task_form(task_id):
     db = get_db()
     task = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
+    if task is None:
+        abort(404)
     return render_template("edit.html", task=task, tasks=get_filtered_tasks())
 
 @app.route("/edit/<int:task_id>", methods=["POST"])
