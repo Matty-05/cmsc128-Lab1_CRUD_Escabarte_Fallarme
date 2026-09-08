@@ -159,13 +159,23 @@ case-insensitively via `COLLATE NOCASE`.
 
 ## Screenshots
 
+To-Do list main page
+
 ![](images/To-Do_List_Page.png)
+
+To-Do list when editing task
 
 ![](images/Edit_List.png)
 
+To-Do list with the sort and filter option
+
 ![](images/Sort&Filter_Page.png)
 
+Delete Confirmation
+
 ![](images/Delete_Confirmation.png)
+
+Undo 
 
 ![](images/Undo.png)
 
