@@ -64,50 +64,54 @@
         <span id="task-count" class="task-count">{{ tasks|length }} task(s)</span>
       </div>
 
-      <form id="filter-form" class="filter-form" method="GET" action="{{ url_for('index') }}">
-        <div class="field">
-          <label for="filter-tag">Tag</label>
-          <select id="filter-tag" name="filter_tag">
-            <option value="" {% if request.args.get('filter_tag', '') == '' %}selected{% endif %}>All tags</option>
-            <option value="School" {% if request.args.get('filter_tag') == 'School' %}selected{% endif %}>School</option>
-            <option value="Personal" {% if request.args.get('filter_tag') == 'Personal' %}selected{% endif %}>Personal</option>
-            <option value="Others" {% if request.args.get('filter_tag') == 'Others' %}selected{% endif %}>Others</option>
-          </select>
-        </div>
+      <form id="filter-form" method="GET" action="{{ url_for('index') }}">
+        <fieldset class="filter-form">
+          <legend>Filter &amp; sort</legend>
 
-        <div class="field">
-          <label for="filter-priority">Priority</label>
-          <select id="filter-priority" name="filter_priority">
-            <option value="" {% if request.args.get('filter_priority', '') == '' %}selected{% endif %}>All priorities</option>
-            <option value="High" {% if request.args.get('filter_priority') == 'High' %}selected{% endif %}>High</option>
-            <option value="Medium" {% if request.args.get('filter_priority') == 'Medium' %}selected{% endif %}>Medium</option>
-            <option value="Low" {% if request.args.get('filter_priority') == 'Low' %}selected{% endif %}>Low</option>
-          </select>
-        </div>
+          <div class="field">
+            <label for="filter-tag">Show tag</label>
+            <select id="filter-tag" name="filter_tag">
+              <option value="" {% if request.args.get('filter_tag', '') == '' %}selected{% endif %}>All tags</option>
+              <option value="School" {% if request.args.get('filter_tag') == 'School' %}selected{% endif %}>School</option>
+              <option value="Personal" {% if request.args.get('filter_tag') == 'Personal' %}selected{% endif %}>Personal</option>
+              <option value="Others" {% if request.args.get('filter_tag') == 'Others' %}selected{% endif %}>Others</option>
+            </select>
+          </div>
 
-        <div class="field">
-          <label for="sort-by">Sort by</label>
-          <select id="sort-by" name="sort_by">
-            <option value="created_at" {% if request.args.get('sort_by', 'created_at') == 'created_at' %}selected{% endif %}>Date added</option>
-            <option value="due_date" {% if request.args.get('sort_by') == 'due_date' %}selected{% endif %}>Due date</option>
-            <option value="title" {% if request.args.get('sort_by') == 'title' %}selected{% endif %}>Title</option>
-            <option value="tag" {% if request.args.get('sort_by') == 'tag' %}selected{% endif %}>Tag</option>
-            <option value="priority" {% if request.args.get('sort_by') == 'priority' %}selected{% endif %}>Priority</option>
-          </select>
-        </div>
+          <div class="field">
+            <label for="filter-priority">Show priority</label>
+            <select id="filter-priority" name="filter_priority">
+              <option value="" {% if request.args.get('filter_priority', '') == '' %}selected{% endif %}>All priorities</option>
+              <option value="High" {% if request.args.get('filter_priority') == 'High' %}selected{% endif %}>High</option>
+              <option value="Medium" {% if request.args.get('filter_priority') == 'Medium' %}selected{% endif %}>Medium</option>
+              <option value="Low" {% if request.args.get('filter_priority') == 'Low' %}selected{% endif %}>Low</option>
+            </select>
+          </div>
 
-        <div class="field">
-          <label for="sort-order">Order</label>
-          <select id="sort-order" name="sort_order">
-            <option value="desc" {% if request.args.get('sort_order', 'desc') == 'desc' %}selected{% endif %}>Descending</option>
-            <option value="asc" {% if request.args.get('sort_order') == 'asc' %}selected{% endif %}>Ascending</option>
-          </select>
-        </div>
+          <div class="field">
+            <label for="sort-by">Sort by</label>
+            <select id="sort-by" name="sort_by">
+              <option value="created_at" {% if request.args.get('sort_by', 'created_at') == 'created_at' %}selected{% endif %}>Date added</option>
+              <option value="due_date" {% if request.args.get('sort_by') == 'due_date' %}selected{% endif %}>Due date</option>
+              <option value="title" {% if request.args.get('sort_by') == 'title' %}selected{% endif %}>Title</option>
+              <option value="tag" {% if request.args.get('sort_by') == 'tag' %}selected{% endif %}>Tag</option>
+              <option value="priority" {% if request.args.get('sort_by') == 'priority' %}selected{% endif %}>Priority</option>
+            </select>
+          </div>
 
-        <div class="form-actions filter-actions">
-          <button type="submit" class="btn btn-secondary">Apply</button>
-          <a href="{{ url_for('index') }}" class="btn btn-ghost">Reset</a>
-        </div>
+          <div class="field">
+            <label for="sort-order">Order</label>
+            <select id="sort-order" name="sort_order">
+              <option value="desc" {% if request.args.get('sort_order', 'desc') == 'desc' %}selected{% endif %}>Descending</option>
+              <option value="asc" {% if request.args.get('sort_order') == 'asc' %}selected{% endif %}>Ascending</option>
+            </select>
+          </div>
+
+          <div class="form-actions filter-actions">
+            <button type="submit" class="btn btn-secondary">Apply</button>
+            <a href="{{ url_for('index') }}" class="btn btn-ghost">Reset</a>
+          </div>
+        </fieldset>
       </form>
 
       <ul id="task-list" class="task-list">
