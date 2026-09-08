@@ -16,7 +16,7 @@
     <section class="panel" aria-labelledby="form-heading">
       <h2 id="form-heading">Add a task</h2>
 
-      <form id="task-form" action="{{ url_for('add_task') }}" method="POST">
+      <form id="task-form" action="{{ url_for('add_task', **request.args) }}" method="POST">
         <div class="field">
           <label for="title">Title <span class="required">*</span></label>
           <input type="text" id="title" name="title" maxlength="200"
@@ -50,114 +50,15 @@
           </div>
         </div>
 
-        <p id="form-error" class="form-error" role="alert" hidden></p>
-
         <div class="form-actions">
-          <button type="submit" id="submit-btn" class="btn btn-primary">Add task</button>
+          <button type="submit" class="btn btn-primary">Add task</button>
         </div>
       </form>
     </section>
 
-    <section class="panel" aria-labelledby="list-heading">
-      <div class="list-header">
-        <h2 id="list-heading">Tasks</h2>
-        <span id="task-count" class="task-count">{{ tasks|length }} task(s)</span>
-      </div>
-
-      <form id="filter-form" class="filter-form" method="GET" action="{{ url_for('index') }}">
-        <div class="field">
-          <label for="filter-tag">Tag</label>
-          <select id="filter-tag" name="filter_tag">
-            <option value="" {% if request.args.get('filter_tag', '') == '' %}selected{% endif %}>All tags</option>
-            <option value="School" {% if request.args.get('filter_tag') == 'School' %}selected{% endif %}>School</option>
-            <option value="Personal" {% if request.args.get('filter_tag') == 'Personal' %}selected{% endif %}>Personal</option>
-            <option value="Others" {% if request.args.get('filter_tag') == 'Others' %}selected{% endif %}>Others</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="filter-priority">Priority</label>
-          <select id="filter-priority" name="filter_priority">
-            <option value="" {% if request.args.get('filter_priority', '') == '' %}selected{% endif %}>All priorities</option>
-            <option value="High" {% if request.args.get('filter_priority') == 'High' %}selected{% endif %}>High</option>
-            <option value="Medium" {% if request.args.get('filter_priority') == 'Medium' %}selected{% endif %}>Medium</option>
-            <option value="Low" {% if request.args.get('filter_priority') == 'Low' %}selected{% endif %}>Low</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="sort-by">Sort by</label>
-          <select id="sort-by" name="sort_by">
-            <option value="created_at" {% if request.args.get('sort_by', 'created_at') == 'created_at' %}selected{% endif %}>Date added</option>
-            <option value="due_date" {% if request.args.get('sort_by') == 'due_date' %}selected{% endif %}>Due date</option>
-            <option value="title" {% if request.args.get('sort_by') == 'title' %}selected{% endif %}>Title</option>
-            <option value="tag" {% if request.args.get('sort_by') == 'tag' %}selected{% endif %}>Tag</option>
-            <option value="priority" {% if request.args.get('sort_by') == 'priority' %}selected{% endif %}>Priority</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="sort-order">Order</label>
-          <select id="sort-order" name="sort_order">
-            <option value="desc" {% if request.args.get('sort_order', 'desc') == 'desc' %}selected{% endif %}>Descending</option>
-            <option value="asc" {% if request.args.get('sort_order') == 'asc' %}selected{% endif %}>Ascending</option>
-          </select>
-        </div>
-
-        <div class="form-actions filter-actions">
-          <button type="submit" class="btn btn-secondary">Apply</button>
-          <a href="{{ url_for('index') }}" class="btn btn-ghost">Reset</a>
-        </div>
-      </form>
-
-      <ul id="task-list" class="task-list">
-        {% for task in tasks %}
-          <li class="task-item {% if task.is_done %}done{% endif %}"
-              data-due-date="{{ task.due_date }}"
-              data-is-done="{{ 1 if task.is_done else 0 }}">
-            <form action="{{ url_for('toggle_task', task_id=task.id) }}" method="POST" class="toggle-form">
-              <input type="checkbox" onchange="this.form.submit()" {% if task.is_done %}checked{% endif %} />
-            </form>
-
-            <div class="task-body">
-              <div class="task-title">{{ task.title }}</div>
-              <div class="task-meta">
-                <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
-                <span class="badge">{{ task.tag }}</span>
-                {% if task.due_date %}
-                  <time class="task-due-date" datetime="{{ task.due_date }}">Due: {{ task.due_date }}</time>
-                {% endif %}
-              </div>
-            </div>
-
-            <div class="task-actions">
-              <a href="{{ url_for('edit_task_form', task_id=task.id) }}" class="icon-btn">Edit</a>
-              <form action="{{ url_for('delete_task', task_id=task.id) }}" method="POST" class="delete-form">
-                <button type="submit" class="icon-btn delete">Delete</button>
-              </form>
-            </div>
-          </li>
-        {% endfor %}
-      </ul>
-
-      {% if tasks|length == 0 %}
-        <p id="empty-state" class="empty-state">
-          {% if request.args.get('filter_tag') or request.args.get('filter_priority') %}
-            No tasks match your filters.
-          {% else %}
-            No tasks yet. Add one using the form.
-          {% endif %}
-        </p>
-      {% endif %}
-    </section>
+    {% include "_tasks_panel.html" %}
   </main>
 
-  <div id="undo-modal" class="undo-modal" role="alertdialog" aria-live="assertive" hidden>
-    <p id="undo-message">Task deleted.</p>
-    <button type="button" id="undo-btn" class="btn btn-secondary">
-      Undo (<span id="undo-countdown">3</span>s)
-    </button>
-  </div>
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
