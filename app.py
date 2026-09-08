@@ -10,7 +10,7 @@ SORT_COLUMNS = {
     "due_date": "due_date",
     "title": "title COLLATE NOCASE",
     "tag": "tag",
-    "priority": "CASE priority WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 WHEN 'Low' THEN 3 END",
+    "priority": "CASE priority WHEN 'High' THEN 3 WHEN 'Medium' THEN 2 WHEN 'Low' THEN 1 END",
 }
 app = Flask(__name__)
 
