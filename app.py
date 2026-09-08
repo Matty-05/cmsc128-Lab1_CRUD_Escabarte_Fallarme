@@ -34,6 +34,9 @@ def init_db():
             db.executescript(f.read())
         db.commit()
 
+def redirect_to_index():
+    return redirect(url_for("index", **request.args))
+
 @app.route("/")
 def index():
     db = get_db()
@@ -77,14 +80,14 @@ def add_task():
 
     db.execute("INSERT INTO tasks (title, due_date, priority, tag) VALUES (?, ?, ?, ?)", (title, due_date, priority, tag))
     db.commit()
-    return redirect(url_for("index"))
+    return redirect_to_index()
 
 @app.route("/toggle/<int:task_id>", methods=["POST"])
 def toggle_task(task_id):
     db = get_db()
     db.execute("UPDATE tasks SET is_done = NOT is_done WHERE id = ?", (task_id,))
     db.commit()
-    return redirect(url_for("index"))
+    return redirect_to_index()
 
 @app.route("/edit/<int:task_id>", methods=["GET"])
 def edit_task_form(task_id):
@@ -102,14 +105,14 @@ def edit_task(task_id):
 
     db.execute("UPDATE tasks SET title = ?, due_date = ?, priority = ?, tag = ? WHERE id = ?", (title, due_date, priority, tag, task_id))
     db.commit()
-    return redirect(url_for("index"))
+    return redirect_to_index()
 
 @app.route("/delete/<int:task_id>", methods=["POST"])
 def delete_task(task_id):
     db = get_db()
     db.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
     db.commit()
-    return redirect(url_for("index"))
+    return redirect_to_index()
 
 if __name__ == "__main__":
     init_db()

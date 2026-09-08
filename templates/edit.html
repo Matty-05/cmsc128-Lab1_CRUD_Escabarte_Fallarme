@@ -16,7 +16,7 @@
     <section class="panel" aria-labelledby="form-heading">
       <h2 id="form-heading">Edit Task</h2>
 
-      <form action="{{ url_for('edit_task', task_id=task.id) }}" method="POST">
+      <form action="{{ url_for('edit_task', task_id=task.id, **request.args) }}" method="POST">
         <div class="field">
           <label for="title">Title <span class="required">*</span></label>
           <input type="text" id="title" name="title" value="{{ task.title }}" maxlength="200" required />
@@ -49,7 +49,7 @@
 
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">Save Task</button>
-          <a href="{{ url_for('index') }}" class="btn btn-ghost">Cancel</a>
+          <a href="{{ url_for('index', **request.args) }}" class="btn btn-ghost">Cancel</a>
         </div>
       </form>
     </section>
