@@ -2,7 +2,7 @@
 
 A simple To-Do List web application implementing the four basic CRUD operations, built for CMSC 128 Laboratory Activity 1.
 
-**Status:** In progress. Backend routes and database schema implemented. Frontend templates to be merged.
+**Status:** Working
 
 ## Authors
 
@@ -33,7 +33,7 @@ to set up.
 ├── database/
 │   └── schema.sql          # SQLite table definitions
 ├── templates/              # Jinja2 HTML templates
-│   ├── _tasks_panel.html   # filter and sort 
+│   ├── _tasks_panel.html   # Task list + filter/sort controls, shared by both pages
 │   ├── index.html          # Task list + add-task form
 │   └── edit.html           # Edit-task form
 └── static/
@@ -99,16 +99,14 @@ The SQLite database file (`database/todo.db`) is created automatically on first 
 
 ## Features
 
-### To Be Implemented
-
-- [ ] To-do list interface
-- [ ] Add task (title, due date and time, priority, tag)
-- [ ] Edit task
-- [ ] Delete task with confirmation dialog
-- [ ] Mark task as done
+- [x] To-do list interface
+- [x] Add task (title, due date and time, priority, tag)
+- [x] Edit task
+- [x] Delete task with confirmation dialog
+- [x] Mark task as done
 - [x] Data persistence across restarts
-- [ ] Undo option when deleting
-- [ ] Filter and sort
+- [x] Undo option when deleting
+- [x] Filter and sort
 
 ## Data Operations
 
@@ -121,7 +119,53 @@ The SQLite database file (`database/todo.db`) is created automatically on first 
 | POST   | `/toggle/<id>`   | `toggle_task`    | Mark a task done or not done   |
 | POST   | `/delete/<id>`   | `delete_task`    | Delete a task                  |
 
+A missing `<id>` returns **404**. Every write redirects back to the list,
+carrying the current query string so the active filter and sort survive the
+action.
+
+### Filter and Sort Parameters
+
+Filtering and sorting are query parameters read by `get_filtered_tasks()`.
+They work on both `/` and `/edit/<id>`, since both pages render the same task
+list.
+
+| Parameter         | Accepted values                                      | Default      |
+| ----------------- | ---------------------------------------------------- | ------------ |
+| `filter_tag`      | `School`, `Personal`, `Others` (omit for all)         | all tags     |
+| `filter_priority` | `High`, `Medium`, `Low` (omit for all)                | all          |
+| `sort_by`         | `created_at`, `due_date`, `title`, `tag`, `priority`  | `created_at` |
+| `sort_order`      | `asc`, `desc`                                         | `desc`       |
+
+Both sort parameters are validated against an allowlist before being used —
+`sort_by` must be a key of `SORT_COLUMNS` and `sort_order` must be `asc` or
+`desc`, otherwise the default is used. This matters because the column and
+direction are interpolated into the SQL string rather than passed as bound
+parameters. Filter values *are* passed as bound parameters (`?` placeholders).
+
+Priority sorts by rank rather than alphabetically (High > Medium > Low), so
+`sort_by=priority&sort_order=desc` puts High-priority tasks first. Titles sort
+case-insensitively via `COLLATE NOCASE`.
+
+**Examples**
+
+```
+/?filter_tag=School                          School tasks only
+/?sort_by=due_date&sort_order=asc            soonest deadline first
+/?sort_by=priority&sort_order=desc           High priority first
+/?filter_priority=High&sort_by=due_date&sort_order=asc
+                                             urgent tasks, soonest first
+/edit/3?filter_tag=School                    edit task 3, list filtered
+```
+
 ## Screenshots
 
-To Be Implemented
+![](images/To-Do_List_Page.png)
+
+![](images/Edit_List.png)
+
+![](images/Sort&Filter_Page.png)
+
+![](images/Delete_Confirmation.png)
+
+![](images/Undo.png)
 
