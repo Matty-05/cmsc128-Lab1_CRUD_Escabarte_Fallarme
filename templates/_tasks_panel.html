@@ -61,7 +61,9 @@
               data-due-date="{{ task.due_date }}"
               data-is-done="{{ 1 if task.is_done else 0 }}">
             <form action="{{ url_for('toggle_task', task_id=task.id, **request.args) }}" method="POST" class="toggle-form">
-              <input type="checkbox" onchange="this.form.submit()" {% if task.is_done %}checked{% endif %} />
+              <input type="checkbox" onchange="this.form.submit()"
+                     aria-label="Mark {{ task.title }} as done"
+                     {% if task.is_done %}checked{% endif %} />
             </form>
 
             <div class="task-body">
