@@ -1,7 +1,11 @@
+import os
 import sqlite3 
 from datetime import datetime
 from pathlib import Path
 from flask import Flask, abort, g, render_template, request, redirect, url_for
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent
 DATABASE = BASE_DIR / "database" / "todo.db"
@@ -14,6 +18,7 @@ SORT_COLUMNS = {
     "priority": "CASE priority WHEN 'High' THEN 3 WHEN 'Medium' THEN 2 WHEN 'Low' THEN 1 END",
 }
 app = Flask(__name__)
+app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
 
 def get_db():
     if 'db' not in g:
