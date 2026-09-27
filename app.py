@@ -53,6 +53,11 @@ def login_required(view):
         return view(*args, **kwargs)
     return wrapped_view
 
+@app.route("/logout", methods=["POST"])
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
 def redirect_to_index():
     return redirect(url_for("index", **request.args))
 
