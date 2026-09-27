@@ -2,8 +2,9 @@ import os
 import sqlite3 
 from datetime import datetime
 from pathlib import Path
-from flask import Flask, abort, g, render_template, request, redirect, url_for
+from flask import Flask, abort, g, render_template, request, redirect, url_for, session
 from dotenv import load_dotenv
+from functools import wraps
 
 load_dotenv()
 
@@ -39,6 +40,18 @@ def init_db():
         with open(SCHEMA, "r") as f:
             db.executescript(f.read())
         db.commit()
+
+@app.route("/login")
+def login():
+    return "Login page coming soon"
+
+def login_required(view):
+    @wraps(view)
+    def wrapped_view(*args, **kwargs):
+        if "user_id" not in session:
+            return redirect(url_for("login"))
+        return view(*args, **kwargs)
+    return wrapped_view
 
 def redirect_to_index():
     return redirect(url_for("index", **request.args))
