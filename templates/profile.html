@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile &middot; My To-Do List</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+  {% include "_header.html" %}
+  {% set errors = errors or {} %}
+  {% set form = form or {} %}
+
+  <main class="profile-layout">
+    <div>
+      <h2 class="page-title">Profile</h2>
+      <p class="auth-intro">Update your account details. Changes are saved only when you press Save.</p>
+    </div>
+
+    {% for message in get_flashed_messages() %}
+      <p class="form-success" role="status">{{ message }}</p>
+    {% endfor %}
+
+    <section class="panel" aria-labelledby="details-heading">
+      <h2 id="details-heading">Account details</h2>
+
+      <form action="{{ url_for('update_profile') }}" method="POST" class="auth-form" novalidate>
+        <input type="hidden" name="action" value="details" />
+
+        <div class="field">
+          <label for="display_name">Display name <span class="required">*</span></label>
+          <input type="text" id="display_name" name="display_name" maxlength="50" required
+                 value="{{ form.display_name or g.user.display_name }}"
+                 {% if errors.display_name %}class="invalid" aria-invalid="true" aria-describedby="display_name-error"{% endif %} />
+          {% if errors.display_name %}
+            <p id="display_name-error" class="field-error">{{ errors.display_name }}</p>
+          {% endif %}
+        </div>
+
+        <div class="field">
+          <label for="username">Username <span class="required">*</span></label>
+          <input type="text" id="username" name="username" maxlength="30" autocomplete="username" required
+                 value="{{ form.username or g.user.username }}"
+                 {% if errors.username %}class="invalid" aria-invalid="true" aria-describedby="username-error"{% endif %} />
+          {% if errors.username %}
+            <p id="username-error" class="field-error">{{ errors.username }}</p>
+          {% else %}
+            <p class="field-hint">Must be unique. You'll use this to log in.</p>
+          {% endif %}
+        </div>
+
+        <div class="form-actions">
+          <button type="reset" class="btn btn-ghost">Discard changes</button>
+          <button type="submit" class="btn btn-primary">Save details</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel" aria-labelledby="password-heading">
+      <h2 id="password-heading">Change password</h2>
+
+      <form action="{{ url_for('update_profile') }}" method="POST" class="auth-form" novalidate>
+        <input type="hidden" name="action" value="password" />
+
+        <div class="field">
+          <label for="current_password">Current password <span class="required">*</span></label>
+          <input type="password" id="current_password" name="current_password"
+                 autocomplete="current-password" required
+                 {% if errors.current_password %}class="invalid" aria-invalid="true" aria-describedby="current-error"{% endif %} />
+          {% if errors.current_password %}
+            <p id="current-error" class="field-error">{{ errors.current_password }}</p>
+          {% endif %}
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="new_password">New password <span class="required">*</span></label>
+            <input type="password" id="new_password" name="new_password" minlength="8"
+                   autocomplete="new-password" required aria-describedby="new-hint"
+                   {% if errors.new_password %}class="invalid" aria-invalid="true"{% endif %} />
+            {% if errors.new_password %}
+              <p id="new-hint" class="field-error">{{ errors.new_password }}</p>
+            {% else %}
+              <p id="new-hint" class="field-hint">At least 8 characters.</p>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label for="confirm_password">Confirm new password <span class="required">*</span></label>
+            <input type="password" id="confirm_password" name="confirm_password"
+                   autocomplete="new-password" required
+                   {% if errors.confirm_password %}class="invalid" aria-invalid="true" aria-describedby="confirm-error"{% endif %} />
+            {% if errors.confirm_password %}
+              <p id="confirm-error" class="field-error">{{ errors.confirm_password }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Update password</button>
+        </div>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
