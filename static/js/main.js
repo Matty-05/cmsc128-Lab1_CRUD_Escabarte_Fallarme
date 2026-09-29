@@ -88,3 +88,14 @@ function finalizePending() {
         initUndoDelete();
       });
     })();
+
+document.querySelectorAll('.show-password').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var input = document.getElementById(btn.dataset.target);
+    if (!input) return;
+    var reveal = input.type === 'password';
+    input.type = reveal ? 'text' : 'password';
+    btn.textContent = reveal ? 'Hide' : 'Show';
+  });
+});
+ 

@@ -1,0 +1,13 @@
+<header class="app-header">
+  <h1>My To-Do List</h1>
+  <p class="subtitle">CMSC 128 Lab 1 &middot; Escabarte &amp; Fallarme</p>
+
+  <nav class="app-nav">
+    <a href="{{ url_for('index') }}">Tasks</a>
+    {% if session.get('user_id') %}
+      <a href="{{ url_for('profile_form') }}">Profile</a>
+    {% else %}
+      <a href="{{ url_for('register_form') }}">Signup</a>
+    {% endif %}
+  </nav>
+</header>
