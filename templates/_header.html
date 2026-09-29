@@ -1,13 +1,26 @@
 <header class="app-header">
-  <h1>My To-Do List</h1>
-  <p class="subtitle">CMSC 128 Lab 1 &middot; Escabarte &amp; Fallarme</p>
+  <div class="header-inner">
+    <div>
+      <h1>My To-Do List</h1>
+      <p class="subtitle">CMSC 128 &middot; Escabarte &amp; Fallarme</p>
+    </div>
 
-  <nav class="app-nav">
-    <a href="{{ url_for('index') }}">Tasks</a>
-    {% if session.get('user_id') %}
-      <a href="{{ url_for('profile_form') }}">Profile</a>
-    {% else %}
-      <a href="{{ url_for('register_form') }}">Signup</a>
-    {% endif %}
-  </nav>
+    <nav class="account-nav" aria-label="Account">
+      {% if g.user %}
+        <span class="greeting">Hello, <strong>{{ g.user.display_name }}</strong></span>
+        <a href="{{ url_for('index') }}" class="nav-link"
+           {% if request.endpoint in ('index', 'edit_task_form') %}aria-current="page"{% endif %}>Tasks</a>
+        <a href="{{ url_for('profile_form') }}" class="nav-link"
+           {% if request.endpoint in ('profile_form', 'update_profile') %}aria-current="page"{% endif %}>Profile</a>
+        <form action="{{ url_for('logout') }}" method="POST" class="logout-form">
+          <button type="submit" class="nav-link nav-outline">Log out</button>
+        </form>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="nav-link"
+           {% if request.endpoint == 'login' %}aria-current="page"{% else %}data-outline{% endif %}>Log in</a>
+        <a href="{{ url_for('register_form') }}" class="nav-link"
+           {% if request.endpoint in ('register_form', 'register') %}aria-current="page"{% else %}data-outline{% endif %}>Sign up</a>
+      {% endif %}
+    </nav>
+  </div>
 </header>
