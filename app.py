@@ -52,9 +52,13 @@ def load_logged_in_user():
     if user_id is not None:
         g.user = get_db().execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
 
-@app.route("/login")
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    return "Login page coming soon"
+    return render_template("login.html")
+
+@app.route("/forgot-password")
+def forgot_password():
+    return "Password recovery coming soon"
 
 def login_required(view):
     @wraps(view)

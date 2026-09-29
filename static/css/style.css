@@ -440,18 +440,6 @@ body {
 /* Auth fields are 44px tall so they are easy to tap */
 .auth-form .field input { min-height: 44px; }
 
-.label-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
-.small-link {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--primary);
-}
-
 .password-wrap { position: relative; }
 .password-wrap input { padding-right: 4.5rem; }
 
@@ -482,6 +470,15 @@ body {
   text-align: center;
   font-size: 0.9rem;
   color: var(--text-muted);
+}
+
+/* Second line under the first ("Forgot your password?") sits closer */
+.auth-switch + .auth-switch { margin-top: 0.5rem; }
+
+/* App blue instead of the browser's default blue/purple link colour */
+.auth-switch a {
+  font-weight: 600;
+  color: var(--primary);
 }
 
 /* Field-level feedback */
