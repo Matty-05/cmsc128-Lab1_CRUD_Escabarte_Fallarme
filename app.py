@@ -196,6 +196,8 @@ def delete_task(task_id):
 
 @app.route("/signup", methods=["GET"])
 def register_form():
+    if g.user:
+        return redirect(url_for("profile_form"))
     return render_template("signup.html")
 
 @app.route("/signup", methods=["POST"])
@@ -259,6 +261,7 @@ def register():
 
     session.clear()
     session["user_id"] = cursor.lastrowid
+    flash("Your account was created. Welcome!")
     return redirect(url_for("profile_form"))
 
 
