@@ -555,23 +555,3 @@ a.btn-block {
   font-weight: 600;
   word-break: break-all;
 }
-
-.unsaved-toast {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: #d9534f; 
-  color: #ffffff;
-  padding: 12px 20px;
-  border-radius: 6px;
-  font-family: sans-serif;
-  font-size: 14px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  z-index: 9999;
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
