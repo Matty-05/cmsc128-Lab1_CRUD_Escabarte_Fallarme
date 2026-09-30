@@ -355,11 +355,7 @@ This app does **not send email**. Instead, the reset link is **shown on the Forg
 - **It reveals which accounts exist.** The confirmation message is the same for every request, but the link only appears when the account exists.
 - The other protections still apply: the token is random and cannot be guessed, it works only once, it expires after 15 minutes, and only its hash is stored in the database.
 
-<<<<<<< HEAD
-To make this production-ready, the app would email the link (for example with Flask-Mail and SMTP credentials stored in `.env`) and never show it on the page. 
-=======
 To make this production-ready, the app would email the link (for example with Flask-Mail and SMTP credentials stored in `.env`) and never show it on the page.
->>>>>>> origin/act2-accounts
 
 
  
