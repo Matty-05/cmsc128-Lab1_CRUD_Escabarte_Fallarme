@@ -24,7 +24,7 @@
     <section class="panel" aria-labelledby="details-heading">
       <h2 id="details-heading">Account details</h2>
 
-      <form action="{{ url_for('update_profile') }}" method="POST" class="auth-form" novalidate>
+      <form action="{{ url_for('update_profile') }}" method="POST" class="auth-form" novalidate data-warn-unsaved>
         <input type="hidden" name="action" value="details" />
 
         <div class="field">
@@ -59,7 +59,7 @@
     <section class="panel" aria-labelledby="password-heading">
       <h2 id="password-heading">Change password</h2>
 
-      <form action="{{ url_for('update_profile') }}" method="POST" class="auth-form" novalidate>
+      <form action="{{ url_for('update_profile') }}" method="POST" class="auth-form" novalidate data-warn-unsaved>
         <input type="hidden" name="action" value="password" />
 
         <div class="field">
@@ -102,5 +102,7 @@
       </form>
     </section>
   </main>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
