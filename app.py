@@ -54,7 +54,27 @@ def load_logged_in_user():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    return render_template("login.html")
+    if request.method == "GET":
+        if g.user:
+            return redirect(url_for("profile_form"))
+        return render_template("login.html")
+
+    username = request.form.get("username", "").strip()
+    password = request.form.get("password", "")
+
+    if not username or not password:
+        return render_template("login.html", error="Enter your username and password.", username=username)
+
+    user = get_db().execute(
+        "SELECT * FROM users WHERE username = ? COLLATE NOCASE", (username,)
+    ).fetchone()
+
+    if user is None or not check_password_hash(user["password_hash"], password):
+        return render_template("login.html", error="Incorrect username or password.", username=username)
+
+    session.clear()
+    session["user_id"] = user["id"]
+    return redirect(url_for("profile_form"))
 
 @app.route("/forgot-password")
 def forgot_password():
