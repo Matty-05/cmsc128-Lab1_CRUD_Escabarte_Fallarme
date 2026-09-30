@@ -1,6 +1,9 @@
 import os
 import sqlite3
-from datetime import datetime
+import hashlib
+import secrets
+
+from datetime import datetime, timedelta
 from functools import wraps
 from pathlib import Path
 
@@ -9,6 +12,7 @@ from flask import Flask, abort, flash, g, redirect, render_template, request, se
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from validators import is_valid_email, is_valid_username, password_error, validate_required
+
 
 load_dotenv()
 
@@ -76,9 +80,67 @@ def login():
     session["user_id"] = user["id"]
     return redirect(url_for("profile_form"))
 
-@app.route("/forgot-password")
+@app.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
-    return "Password recovery coming soon"
+    if request.method == "GET":
+        return render_template("forgot_password.html")
+
+    identifier = request.form.get("identifier", "").strip()
+    if not identifier:
+        return render_template("forgot_password.html", error="Enter your username or email.")
+
+    db = get_db()
+    user = db.execute(
+        "SELECT * FROM users WHERE username = ? COLLATE NOCASE OR email = ?",
+        (identifier, identifier.lower()),
+    ).fetchone()
+
+    reset_link = None
+    if user is not None:
+        token = secrets.token_urlsafe(32)
+        expires_at = (datetime.now() + timedelta(minutes=RESET_TOKEN_MINUTES)).isoformat()
+        db.execute(
+            "INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES (?, ?, ?)",
+            (user["id"], hash_token(token), expires_at),
+        )
+        db.commit()
+        reset_link = url_for("reset_password", token=token, _external=True)
+
+    return render_template("forgot_password.html", submitted=True, reset_link=reset_link)
+
+@app.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    reset = find_valid_reset(token)
+    if reset is None:
+        return render_template("reset_password.html", invalid=True, token=token)
+
+    if request.method == "GET":
+        return render_template("reset_password.html", token=token)
+
+    new_password = request.form.get("new_password", "")
+    confirm_password = request.form.get("confirm_password", "")
+
+    errors = validate_required({"new_password": new_password, "confirm_password": confirm_password})
+    if "new_password" not in errors:
+        message = password_error(new_password)
+        if message:
+            errors["new_password"] = message
+    if not errors and new_password != confirm_password:
+        errors["confirm_password"] = "Passwords do not match."
+    if errors:
+        return render_template("reset_password.html", token=token, errors=errors)
+
+    db = get_db()
+    db.execute(
+        "UPDATE users SET password_hash = ? WHERE id = ?",
+        (generate_password_hash(new_password), reset["user_id"]),
+    )
+    db.execute("UPDATE password_resets SET used = 1 WHERE user_id = ?", (reset["user_id"],))
+    db.commit()
+
+    session.clear()
+    flash("Password reset. Log in with your new password.")
+    return redirect(url_for("login"))
 
 def login_required(view):
     @wraps(view)
@@ -87,6 +149,17 @@ def login_required(view):
             return redirect(url_for("login"))
         return view(*args, **kwargs)
     return wrapped_view
+
+RESET_TOKEN_MINUTES = 15
+
+def hash_token(token):
+    return hashlib.sha256(token.encode()).hexdigest()
+
+def find_valid_reset(token):
+    return get_db().execute(
+        "SELECT * FROM password_resets WHERE token_hash = ? AND used = 0 AND expires_at > ?",
+        (hash_token(token), datetime.now().isoformat()),
+    ).fetchone()
 
 @app.route("/logout", methods=["POST"])
 def logout():
