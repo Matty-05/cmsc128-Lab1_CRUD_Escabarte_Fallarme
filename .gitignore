@@ -4,4 +4,3 @@ __pycache__/
 instance/
 database/todo.db
 .env
-key.env
