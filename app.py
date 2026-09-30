@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from flask import Flask, abort, flash, g, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from validators import is_valid_email, is_valid_username, password_error
+from validators import is_valid_email, is_valid_username, password_error, validate_required
 
 
 load_dotenv()
@@ -110,7 +110,37 @@ def forgot_password():
 
 @app.route("/reset-password/<token>", methods=["GET", "POST"])
 def reset_password(token):
-    return "Reset page coming soon"
+    reset = find_valid_reset(token)
+    if reset is None:
+        return render_template("reset_password.html", invalid=True, token=token)
+
+    if request.method == "GET":
+        return render_template("reset_password.html", token=token)
+
+    new_password = request.form.get("new_password", "")
+    confirm_password = request.form.get("confirm_password", "")
+
+    errors = validate_required({"new_password": new_password, "confirm_password": confirm_password})
+    if "new_password" not in errors:
+        message = password_error(new_password)
+        if message:
+            errors["new_password"] = message
+    if not errors and new_password != confirm_password:
+        errors["confirm_password"] = "Passwords do not match."
+    if errors:
+        return render_template("reset_password.html", token=token, errors=errors)
+
+    db = get_db()
+    db.execute(
+        "UPDATE users SET password_hash = ? WHERE id = ?",
+        (generate_password_hash(new_password), reset["user_id"]),
+    )
+    db.execute("UPDATE password_resets SET used = 1 WHERE user_id = ?", (reset["user_id"],))
+    db.commit()
+
+    session.clear()
+    flash("Password reset. Log in with your new password.")
+    return redirect(url_for("login"))
 
 def login_required(view):
     @wraps(view)
@@ -124,6 +154,12 @@ RESET_TOKEN_MINUTES = 15
 
 def hash_token(token):
     return hashlib.sha256(token.encode()).hexdigest()
+
+def find_valid_reset(token):
+    return get_db().execute(
+        "SELECT * FROM password_resets WHERE token_hash = ? AND used = 0 AND expires_at > ?",
+        (hash_token(token), datetime.now().isoformat()),
+    ).fetchone()
 
 @app.route("/logout", methods=["POST"])
 def logout():
