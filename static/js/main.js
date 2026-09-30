@@ -99,3 +99,21 @@ document.querySelectorAll('.show-password').forEach(function (btn) {
   });
 });
  
+
+// Warn before leaving Profile with unsaved edits
+(function () {
+  const forms = document.querySelectorAll('form[data-warn-unsaved]');
+  let hasUnsavedChanges = false;
+
+  forms.forEach((form) => {
+    form.addEventListener('input', () => { hasUnsavedChanges = true; });
+    form.addEventListener('reset', () => { hasUnsavedChanges = false; });
+    form.addEventListener('submit', () => { hasUnsavedChanges = false; });
+  });
+
+  window.addEventListener('beforeunload', (event) => {
+    if (!hasUnsavedChanges) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
+})();
