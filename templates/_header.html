@@ -15,6 +15,13 @@
         <form action="{{ url_for('logout') }}" method="POST" class="logout-form">
           <button type="submit" class="nav-link nav-outline">Log out</button>
         </form>
+        <script>
+          // Brave/Chrome can restore this page from memory on Back, even after logout.
+          // Reloading forces the server to check the session again.
+          window.addEventListener('pageshow', function (event) {
+            if (event.persisted) location.reload();
+          });
+        </script>
       {% else %}
         <a href="{{ url_for('login') }}" class="nav-link"
            {% if request.endpoint == 'login' %}aria-current="page"{% else %}data-outline{% endif %}>Log in</a>

@@ -56,6 +56,12 @@ def load_logged_in_user():
     if user_id is not None:
         g.user = get_db().execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
 
+@app.after_request
+def prevent_caching_logged_in_pages(response):
+    if g.get("user"):
+        response.headers["Cache-Control"] = "no-store"
+    return response
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
