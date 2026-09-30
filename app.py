@@ -151,7 +151,7 @@ def reset_password(token):
 def login_required(view):
     @wraps(view)
     def wrapped_view(*args, **kwargs):
-        if "user_id" not in session:
+        if g.user is None:
             return redirect(url_for("login"))
         return view(*args, **kwargs)
     return wrapped_view
