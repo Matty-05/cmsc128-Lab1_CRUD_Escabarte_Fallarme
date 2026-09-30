@@ -39,6 +39,8 @@
                  {% if errors.username %}class="invalid" aria-invalid="true" aria-describedby="username-error"{% endif %} />
           {% if errors.username %}
             <p id="username-error" class="field-error">{{ errors.username }}</p>
+          {% else %}
+            <p class="field-hint">3–30 characters, letters/numbers/underscores.</p>
           {% endif %}
         </div>
 
