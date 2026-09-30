@@ -100,50 +100,20 @@ document.querySelectorAll('.show-password').forEach(function (btn) {
 });
  
 
+// Warn before leaving Profile with unsaved edits
 (function () {
-  const forms = document.querySelectorAll('.auth-form');
-  let saved = false;
+  const forms = document.querySelectorAll('form[data-warn-unsaved]');
+  let hasUnsavedChanges = false;
 
-  // Track form changes
   forms.forEach((form) => {
-    form.addEventListener('input', () => {
-      saved = true;
-    });
-    form.addEventListener('reset', () => {
-      saved = false;
-    });
-    form.addEventListener('submit', () => {
-      saved = false;
-    });
+    form.addEventListener('input', () => { hasUnsavedChanges = true; });
+    form.addEventListener('reset', () => { hasUnsavedChanges = false; });
+    form.addEventListener('submit', () => { hasUnsavedChanges = false; });
   });
 
-  // Native browser alert on Page Refresh / Navigation
   window.addEventListener('beforeunload', (event) => {
-    if (!saved) return;
+    if (!hasUnsavedChanges) return;
     event.preventDefault();
-    event.returnValue = ''; // Triggers native browser popup
+    event.returnValue = '';
   });
-
-  // Custom Toast when Switching Tabs
-  document.addEventListener('visibilitychange', () => {
-    // Triggers when returning to the tab if unsaved changes exist
-    if (document.visibilityState === 'visible' && saved) {
-      showToast('You have unsaved changes in your form!');
-    }
-  });
-
-  // Simple Helper Function to display a toast
-  function showToast(message) {
-    // Avoid creating duplicate toasts
-    if (document.getElementById('unsaved-toast')) return;
-
-    const toast = document.createElement('div');
-    toast.id = 'unsaved-toast';
-    toast.className = 'unsaved-toast';
-    toast.textContent = message;
-
-    document.body.appendChild(toast);
-
-
-  }
 })();
