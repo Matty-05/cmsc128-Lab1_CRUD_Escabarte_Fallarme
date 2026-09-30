@@ -524,3 +524,34 @@ body {
 .page-title { margin: 0; font-size: 1.5rem; }
 .profile-layout .auth-intro { margin: 0.15rem 0 0; }
 .profile-layout .form-success { margin: 0; }
+
+/* A link styled as a full-width button ("Request a new link") */
+a.btn-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+/* Password recovery: demo box that shows the reset link instead of emailing it */
+.demo-box {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #fafbfc;
+  border: 1px dashed var(--control-border);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+}
+
+.demo-box p { margin: 0 0 0.4rem; }
+
+.demo-label {
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.demo-link {
+  color: var(--primary);
+  font-weight: 600;
+  word-break: break-all;
+}

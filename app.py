@@ -1,6 +1,9 @@
 import os
 import sqlite3
-from datetime import datetime
+import hashlib
+import secrets
+
+from datetime import datetime, timedelta
 from functools import wraps
 from pathlib import Path
 
@@ -8,7 +11,8 @@ from dotenv import load_dotenv
 from flask import Flask, abort, flash, g, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from validators import is_valid_email, is_valid_username, password_error, validate_required
+from validators import is_valid_email, is_valid_username, password_error
+
 
 load_dotenv()
 
@@ -76,9 +80,37 @@ def login():
     session["user_id"] = user["id"]
     return redirect(url_for("profile_form"))
 
-@app.route("/forgot-password")
+@app.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
-    return "Password recovery coming soon"
+    if request.method == "GET":
+        return render_template("forgot_password.html")
+
+    identifier = request.form.get("identifier", "").strip()
+    if not identifier:
+        return render_template("forgot_password.html", error="Enter your username or email.")
+
+    db = get_db()
+    user = db.execute(
+        "SELECT * FROM users WHERE username = ? COLLATE NOCASE OR email = ?",
+        (identifier, identifier.lower()),
+    ).fetchone()
+
+    reset_link = None
+    if user is not None:
+        token = secrets.token_urlsafe(32)
+        expires_at = (datetime.now() + timedelta(minutes=RESET_TOKEN_MINUTES)).isoformat()
+        db.execute(
+            "INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES (?, ?, ?)",
+            (user["id"], hash_token(token), expires_at),
+        )
+        db.commit()
+        reset_link = url_for("reset_password", token=token, _external=True)
+
+    return render_template("forgot_password.html", submitted=True, reset_link=reset_link)
+
+@app.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    return "Reset page coming soon"
 
 def login_required(view):
     @wraps(view)
@@ -87,6 +119,11 @@ def login_required(view):
             return redirect(url_for("login"))
         return view(*args, **kwargs)
     return wrapped_view
+
+RESET_TOKEN_MINUTES = 15
+
+def hash_token(token):
+    return hashlib.sha256(token.encode()).hexdigest()
 
 @app.route("/logout", methods=["POST"])
 def logout():
