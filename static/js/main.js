@@ -28,6 +28,7 @@ function initUndoDelete() {
   var messageEl = document.getElementById('undo-message');
   var countdownEl = document.getElementById('undo-countdown');
   var pending = null;
+  if (!modal) return; // this page has no task list
 
 function finalizePending() {
   if (!pending) return;
