@@ -66,7 +66,7 @@ def prevent_caching_logged_in_pages(response):
 def login():
     if request.method == "GET":
         if g.user:
-            return redirect(url_for("profile_form"))
+            return redirect(url_for("index"))
         return render_template("login.html")
 
     username = request.form.get("username", "").strip()
@@ -84,7 +84,7 @@ def login():
 
     session.clear()
     session["user_id"] = user["id"]
-    return redirect(url_for("profile_form"))
+    return redirect(url_for("index"))
 
 @app.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
@@ -215,10 +215,12 @@ def get_filtered_tasks():
     return db.execute(f"SELECT * FROM tasks {where_clause} ORDER BY {order_expression} {sort_order}", parameter_values).fetchall()
 
 @app.route("/")
+@login_required
 def index():
     return render_template("index.html", tasks=get_filtered_tasks())
 
 @app.route("/add", methods=["POST"])
+@login_required
 def add_task():
     db = get_db()
     title = request.form["title"].strip()
@@ -234,6 +236,7 @@ def add_task():
     return redirect_to_index()
 
 @app.route("/toggle/<int:task_id>", methods=["POST"])
+@login_required
 def toggle_task(task_id):
     db = get_db()
     db.execute("UPDATE tasks SET is_done = NOT is_done WHERE id = ?", (task_id,))
@@ -241,6 +244,7 @@ def toggle_task(task_id):
     return redirect_to_index()
 
 @app.route("/edit/<int:task_id>", methods=["GET"])
+@login_required
 def edit_task_form(task_id):
     db = get_db()
     task = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
@@ -249,6 +253,7 @@ def edit_task_form(task_id):
     return render_template("edit.html", task=task, tasks=get_filtered_tasks())
 
 @app.route("/edit/<int:task_id>", methods=["POST"])
+@login_required
 def edit_task(task_id):
     db = get_db()
     title = request.form["title"].strip()
@@ -264,6 +269,7 @@ def edit_task(task_id):
     return redirect_to_index()
 
 @app.route("/delete/<int:task_id>", methods=["POST"])
+@login_required
 def delete_task(task_id):
     db = get_db()
     db.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
