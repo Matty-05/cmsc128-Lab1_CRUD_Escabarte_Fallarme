@@ -33,6 +33,7 @@ def get_db():
     if 'db' not in g:
         g.db = sqlite3.connect(DATABASE)
         g.db.row_factory = sqlite3.Row
+        g.db.execute("PRAGMA foreign_keys = ON")
     return g.db
 
 @app.teardown_appcontext
@@ -192,8 +193,10 @@ def get_filtered_tasks():
     filter_tag = request.args.get("filter_tag", "")
     filter_priority = request.args.get("filter_priority", "")
 
-    condition_strings = []
-    parameter_values = []
+    condition_strings = [
+        "(user_id = ? OR list_id IN (SELECT list_id FROM list_members WHERE user_id = ?))"
+    ]
+    parameter_values = [g.user["id"], g.user["id"]]
 
     if filter_tag: 
         condition_strings.append("tag = ?")
@@ -203,7 +206,7 @@ def get_filtered_tasks():
         condition_strings.append("priority = ?")
         parameter_values.append(filter_priority)
 
-    where_clause = "WHERE " + " AND ".join(condition_strings) if condition_strings else ""
+    where_clause = "WHERE " + " AND ".join(condition_strings)
     
     if (sort_order != "desc" and sort_order != "asc"):
         sort_order = "desc"
@@ -230,8 +233,20 @@ def add_task():
     due_date = request.form["due_date"]
     priority = request.form["priority"]
     tag = request.form["tag"]
+    list_id = request.form.get("list_id", type=int)
 
-    db.execute("INSERT INTO tasks (title, due_date, priority, tag) VALUES (?, ?, ?, ?)", (title, due_date, priority, tag))
+    if list_id is not None:
+        membership = db.execute(
+            "SELECT 1 FROM list_members WHERE list_id = ? AND user_id = ?",
+            (list_id, g.user["id"]),
+        ).fetchone()
+        if membership is None:
+            abort(403)
+
+    db.execute(
+        "INSERT INTO tasks (user_id, list_id, title, due_date, priority, tag) VALUES (?, ?, ?, ?, ?, ?)",
+        (g.user["id"], list_id, title, due_date, priority, tag),
+    )
     db.commit()
     return redirect_to_index()
 
@@ -239,7 +254,14 @@ def add_task():
 @login_required
 def toggle_task(task_id):
     db = get_db()
-    db.execute("UPDATE tasks SET is_done = NOT is_done WHERE id = ?", (task_id,))
+    cursor = db.execute(
+        """UPDATE tasks SET is_done = NOT is_done
+           WHERE id = ? AND (user_id = ? OR list_id IN
+               (SELECT list_id FROM list_members WHERE user_id = ?))""",
+        (task_id, g.user["id"], g.user["id"]),
+    )
+    if cursor.rowcount == 0:
+        abort(404)
     db.commit()
     return redirect_to_index()
 
@@ -247,7 +269,11 @@ def toggle_task(task_id):
 @login_required
 def edit_task_form(task_id):
     db = get_db()
-    task = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
+    task = db.execute(
+        """SELECT * FROM tasks WHERE id = ? AND (user_id = ? OR list_id IN
+               (SELECT list_id FROM list_members WHERE user_id = ?))""",
+        (task_id, g.user["id"], g.user["id"]),
+    ).fetchone()
     if task is None:
         abort(404)
     return render_template("edit.html", task=task, tasks=get_filtered_tasks())
@@ -264,7 +290,14 @@ def edit_task(task_id):
     priority = request.form["priority"]
     tag = request.form["tag"]
 
-    db.execute("UPDATE tasks SET title = ?, due_date = ?, priority = ?, tag = ? WHERE id = ?", (title, due_date, priority, tag, task_id))
+    cursor = db.execute(
+        """UPDATE tasks SET title = ?, due_date = ?, priority = ?, tag = ?
+           WHERE id = ? AND (user_id = ? OR list_id IN
+               (SELECT list_id FROM list_members WHERE user_id = ?))""",
+        (title, due_date, priority, tag, task_id, g.user["id"], g.user["id"]),
+    )
+    if cursor.rowcount == 0:
+        abort(404)
     db.commit()
     return redirect_to_index()
 
@@ -272,7 +305,62 @@ def edit_task(task_id):
 @login_required
 def delete_task(task_id):
     db = get_db()
-    db.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+    cursor = db.execute(
+        """DELETE FROM tasks WHERE id = ? AND (user_id = ? OR list_id IN
+               (SELECT list_id FROM list_members WHERE user_id = ?))""",
+        (task_id, g.user["id"], g.user["id"]),
+    )
+    if cursor.rowcount == 0:
+        abort(404)
+    db.commit()
+    return redirect_to_index()
+
+
+@app.route("/lists", methods=["POST"])
+@login_required
+def create_list():
+    name = request.form.get("name", "").strip()
+    if not name:
+        flash("Enter a list name.")
+        return redirect_to_index()
+
+    db = get_db()
+    cursor = db.execute(
+        "INSERT INTO lists (owner_id, name) VALUES (?, ?)",
+        (g.user["id"], name),
+    )
+    db.execute(
+        "INSERT INTO list_members (list_id, user_id) VALUES (?, ?)",
+        (cursor.lastrowid, g.user["id"]),
+    )
+    db.commit()
+    return redirect_to_index()
+
+
+@app.route("/lists/<int:list_id>/members", methods=["POST"])
+@login_required
+def add_list_member(list_id):
+    identifier = request.form.get("identifier", "").strip()
+    db = get_db()
+    owned_list = db.execute(
+        "SELECT 1 FROM lists WHERE id = ? AND owner_id = ?",
+        (list_id, g.user["id"]),
+    ).fetchone()
+    if owned_list is None:
+        abort(404)
+
+    user = db.execute(
+        "SELECT id FROM users WHERE username = ? COLLATE NOCASE OR email = ?",
+        (identifier, identifier.lower()),
+    ).fetchone()
+    if user is None:
+        flash("No account matches that username or email.")
+        return redirect_to_index()
+
+    db.execute(
+        "INSERT OR IGNORE INTO list_members (list_id, user_id) VALUES (?, ?)",
+        (list_id, user["id"]),
+    )
     db.commit()
     return redirect_to_index()
 
