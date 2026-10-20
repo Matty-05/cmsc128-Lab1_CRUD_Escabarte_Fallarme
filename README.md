@@ -132,7 +132,7 @@ python app.py
 
 Then open http://127.0.0.1:5000 in a browser.
 
-The SQLite database file (`database/todo.db`) is created automatically on first run and is **not** tracked by Git — each developer gets their own local copy. On every start, `init_db()` runs `schema.sql`, which creates any missing tables (`tasks`, `users`, `password_resets`) without touching existing data.
+The SQLite database file (`database/todo.db`) is created automatically on first run and is **not** tracked by Git. After pulling the Activity 3 schema changes, delete the old `database/todo.db` once so the app can recreate it with task ownership and shared-list tables.
 
 Run the app with `python app.py`, not `flask run`, because `init_db()` only runs from `app.py`.
 
@@ -356,6 +356,3 @@ This app does **not send email**. Instead, the reset link is **shown on the Forg
 - The other protections still apply: the token is random and cannot be guessed, it works only once, it expires after 15 minutes, and only its hash is stored in the database.
 
 To make this production-ready, the app would email the link (for example with Flask-Mail and SMTP credentials stored in `.env`) and never show it on the page.
-
-
- 
