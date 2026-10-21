@@ -1,0 +1,51 @@
+{# List switcher + list forms. Shared by index.html and edit.html. #}
+    <section class="panel list-bar" aria-labelledby="lists-heading">
+      <h2 id="lists-heading">Lists</h2>
+
+      {% for category, message in get_flashed_messages(with_categories=true) %}
+        {% if category == 'error' %}
+          <p class="form-error" role="alert">{{ message }}</p>
+        {% else %}
+          <p class="form-success" role="status">{{ message }}</p>
+        {% endif %}
+      {% endfor %}
+
+      <form action="{{ url_for('switch_list', **request.args) }}" method="POST" class="list-tabs">
+        <button type="submit" name="list_id" value="" class="list-tab"
+                {% if not active_list %}aria-current="true"{% endif %}>My tasks</button>
+        {% for list in lists %}
+          <button type="submit" name="list_id" value="{{ list.id }}" class="list-tab"
+                  {% if active_list and active_list.id == list.id %}aria-current="true"{% endif %}>
+            {{ list.name }}
+            {% if list.owner_id != g.user.id %}<span class="list-owner">by {{ list.owner_name }}</span>{% endif %}
+          </button>
+        {% endfor %}
+      </form>
+
+      {% if active_list %}
+        <p class="list-members">Members: {{ members | map(attribute='display_name') | join(', ') }}</p>
+      {% endif %}
+
+      <div class="list-forms">
+        <form action="{{ url_for('create_list', **request.args) }}" method="POST" class="field">
+          <label for="new-list-name">New shared list</label>
+          <div class="inline-field">
+            <input type="text" id="new-list-name" name="name" maxlength="60"
+                   placeholder="e.g. Group project" required />
+            <button type="submit" class="btn btn-secondary">Create</button>
+          </div>
+        </form>
+
+        {# Only the owner can add people, so only the owner sees this form. #}
+        {% if active_list and active_list.owner_id == g.user.id %}
+          <form action="{{ url_for('add_list_member', list_id=active_list.id, **request.args) }}" method="POST" class="field">
+            <label for="member-identifier">Add a member to {{ active_list.name }}</label>
+            <div class="inline-field">
+              <input type="text" id="member-identifier" name="identifier"
+                     placeholder="Username or email" required />
+              <button type="submit" class="btn btn-secondary">Add</button>
+            </div>
+          </form>
+        {% endif %}
+      </div>
+    </section>

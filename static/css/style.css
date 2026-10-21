@@ -19,6 +19,9 @@
 
 * { box-sizing: border-box; }
 
+/* Always show the scrollbar, so short and long pages stay centered the same. */
+html { overflow-y: scroll; }
+
 
 body {
   margin: 0;
@@ -555,3 +558,51 @@ a.btn-block {
   font-weight: 600;
   word-break: break-all;
 }
+
+/* List switcher (Lab 3) */
+.list-bar { grid-column: 1 / -1; }
+
+.list-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.list-tab {
+  min-height: 44px;
+  padding: 0 0.9rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--text);
+  background: #fafbfc;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.list-tab:hover { background: #ebecf0; }
+.list-tab:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* The list you are viewing */
+.list-tab[aria-current="true"] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.list-owner { font-weight: 400; font-size: 0.85rem; }
+
+.list-members {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.list-forms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.list-forms .field { margin-bottom: 0; }
+
+.inline-field { display: flex; gap: 0.5rem; }

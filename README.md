@@ -154,6 +154,25 @@ The script adds four personal tasks to each account, creates a `Demo Group List`
 - `venv/`, `database/todo.db`, and `.env` are gitignored on purpose — don't commit them.
 - If you install a new package, add it to `requirements.txt` and commit that file.
 
+## How Activity 1 and Activity 2 Were Merged
+
+**Branches**
+
+| Branch | Purpose |
+|---|---|
+| `main` | Activity 1 (CRUD To-Do List), final commit `cmsc128-Pair-Act1-finalX` |
+| `act2-accounts` | Activity 2 (accounts), branched from `main` |
+| `act3-ubac` | Activity 3 (UBAC), branched from `act2-accounts` |
+| `escabarte-act3`, `fallarme-act3` | Each partner's work, merged into `act3-ubac` through pull requests |
+
+**Strategy**
+
+We built Activity 2 on top of Activity 1 instead of as a separate app: `act2-accounts` was branched from `main`, so the CRUD code was already in it. Because of that, `act3-ubac` was cut from `act2-accounts`, and `git merge main` into it reports "Already up to date". The integration work for this activity was connecting the two features: tasks now require a login, and every task query is scoped to the logged-in user.
+
+**Conflicts resolved**
+
+- Activity 2: merging `act2-accounts` into `fallarme-act2` (commit `78ea0e5`) conflicted in `README.md`, `app.py`, `static/css/style.css`, `static/js/main.js`, and `templates/_header.html`. We kept both sides' changes and removed CSS that was no longer used.
+
 ## Features
 
 **Tasks (Lab 1)**
