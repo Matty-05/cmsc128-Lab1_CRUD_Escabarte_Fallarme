@@ -207,7 +207,7 @@ A missing `<id>` returns **404**. Every write redirects back to the list,
 carrying the current query string so the active filter and sort survive the
 action.
 
-Every task route checks access before reading or changing a task. A user may access a task when `tasks.user_id` matches the logged-in user's ID or when the user has a `list_members` row for the task's `list_id`. An inaccessible or missing task returns **404**, so the response does not reveal whether another user's task exists.
+Every task route checks access before reading or changing a task. A user may access a task when `tasks.user_id` matches the logged-in user's ID or when the user has a `list_members` row for the task's `list_id`. Edit, toggle, delete, and list-switch requests return **404** when the task or list is missing or inaccessible, so the response does not reveal whether another user's data exists. `POST /add` returns **403** when a user tries to add a task to a list they have not joined.
 
 For example, task lookup uses the equivalent of:
 
@@ -223,7 +223,7 @@ WHERE tasks.id = ?
 
 The active shared list is stored in `session["list_id"]`. `get_active_list()` checks membership on every request instead of trusting the session value. `POST /lists/switch` also returns **404** when the logged-in user is not a member of the requested list.
 
-The list bar shows **My tasks** and every shared list the user can access. A shared list displays its members and the name of the user who added each task. Any logged-in user can create a list, while only the list owner sees and may use the form for adding members.
+The list bar shows **My tasks** and every shared list the user can access. A shared list displays its members and the name of the user who added each task. Any logged-in user can create a list. Only the list owner sees the member form, and the backend independently verifies ownership. A non-owner who submits a member request directly receives **404**.
 
 ### Account routes
 
@@ -362,7 +362,7 @@ Logging in is handled with Flask's built-in `session`, which is stored in a **si
 **How pages use the session**
 
 - `load_logged_in_user()` (`@app.before_request`) runs before every request and loads the logged-in user's row into `g.user`. The header uses it to show *"Hello, &lt;display name&gt;"*, the current page, and the Log out button.
-- `@login_required` protects pages such as `/profile`. If there is no `user_id` in the session, it redirects to `/login`.
+- `@login_required` protects `/profile`, the task routes, and the list routes. If there is no `user_id` in the session, it redirects to `/login`.
 - A logged-in user who opens `/login` or `/signup` is redirected to the To-Do List.
 
 **How logout ends the session**
