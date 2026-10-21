@@ -1,6 +1,6 @@
-# CMSC 128 Lab 2 — To-Do List with User Accounts
+# CMSC 128 Lab 3 — Multi-User CRUD with UBAC
 
-A To-Do List web application with user accounts, built for CMSC 128 Laboratory Activities 1 and 2. Lab 1 added the four CRUD operations for tasks. Lab 2 adds registration, login, logout, persistent sessions, a profile page, and password recovery.
+A multi-user To-Do List application built for CMSC 128 Laboratory Activities 1 to 3. Lab 1 added task CRUD operations. Lab 2 added accounts and sessions. Lab 3 adds user-based access control (UBAC), personal tasks, and shared lists.
 
 **Status:** Working
 
@@ -36,12 +36,13 @@ auth library, so we can explain every step ourselves:
 ```
 .
 ├── app.py                    # Flask application: routes, CRUD, auth, sessions
+├── seed.py                   # Demo tasks and a shared list for four existing accounts
 ├── validators.py             # Shared validation helpers (required fields, username, email, password)
 ├── requirements.txt          # Python dependencies
 ├── .env.example              # Variable names only; copy to .env and set your own values
 ├── .gitignore
 ├── database/
-│   └── schema.sql            # SQLite tables: tasks, users, password_resets
+│   └── schema.sql            # SQLite tables: users, tasks, lists, list_members, password_resets
 ├── templates/                # Jinja2 HTML templates
 │   ├── _header.html          # Shared header: greeting, navigation, Log out
 │   ├── _tasks_panel.html     # Task list + filter/sort controls, shared by both task pages
@@ -66,12 +67,12 @@ auth library, so we can explain every step ourselves:
 
 ### Installation
 
-Clone the repository, move into it, and switch to the Lab 2 branch:
+Clone the repository, move into it, and switch to the Lab 3 branch:
 
 ```bash
 git clone https://github.com/Matty-05/cmsc128-Lab1_CRUD_Escabarte_Fallarme
 cd cmsc128-Lab1_CRUD_Escabarte_Fallarme
-git checkout act2-accounts
+git checkout act3-ubac
 ```
 
 Create and activate a virtual environment:
@@ -136,6 +137,16 @@ The SQLite database file (`database/todo.db`) is created automatically on first 
 
 Run the app with `python app.py`, not `flask run`, because `init_db()` only runs from `app.py`.
 
+### Seed demo data
+
+Create four accounts at `/signup` with the usernames `demo1`, `demo2`, `demo3`, and `demo4`. The seed script does not register accounts. After the accounts exist, run:
+
+```bash
+python seed.py demo1 demo2 demo3 demo4
+```
+
+The script adds four personal tasks to each account and creates a `Demo Group List` shared by all four accounts.
+
 ### Notes for collaborators
 
 - Re-run the activate command in every new terminal session.
@@ -167,31 +178,56 @@ Run the app with `python app.py`, not `flask run`, because `init_db()` only runs
 - [x] Warning before leaving Profile with unsaved changes
 - [x] Password recovery with time-limited, single-use reset links (demo mode, see below)
 
+**Multi-user CRUD with UBAC (Lab 3)**
+
+- [x] Show each user only their own personal tasks
+- [x] Create shared lists and show their tasks to list members
+- [x] Add a list member by username or email
+- [x] Switch between personal tasks and accessible shared lists
+- [x] Persist users, tasks, lists, memberships, and the active-list selection
+
 ## Data Operations
 
 ### Task routes
 
-| Method | Route            | Function         | Description                    |
-| ------ | ---------------- | ---------------- | ------------------------------ |
-| GET    | `/`              | `index`          | List all tasks                 |
-| POST   | `/add`           | `add_task`       | Create a new task              |
-| GET    | `/edit/<id>`     | `edit_task_form` | Fetch one task for editing     |
-| POST   | `/edit/<id>`     | `edit_task`      | Update an existing task        |
-| POST   | `/toggle/<id>`   | `toggle_task`    | Mark a task done or not done   |
-| POST   | `/delete/<id>`   | `delete_task`    | Delete a task                  |
+| Method | Route                  | Function          | Description |
+| ------ | ---------------------- | ----------------- | ----------- |
+| GET    | `/`                    | `index`           | Show tasks from the active personal or shared list |
+| POST   | `/add`                 | `add_task`        | Create a task in the active personal or shared list |
+| GET    | `/edit/<id>`           | `edit_task_form`  | Show an accessible task for editing |
+| POST   | `/edit/<id>`           | `edit_task`       | Update an accessible task |
+| POST   | `/toggle/<id>`         | `toggle_task`     | Change an accessible task's completion state |
+| POST   | `/delete/<id>`         | `delete_task`     | Delete an accessible task |
+| POST   | `/lists`               | `create_list`     | Create a shared list and add its owner as a member |
+| POST   | `/lists/switch`        | `switch_list`     | Store an accessible list in `session["list_id"]` |
+| POST   | `/lists/<id>/members`  | `add_list_member` | Add a member by username or email |
 
 A missing `<id>` returns **404**. Every write redirects back to the list,
 carrying the current query string so the active filter and sort survive the
 action.
 
-Tasks are not linked to users yet. Owner-based access control (each user sees only their own tasks) is the next activity.
+Every task route checks access before reading or changing a task. A user may access a task when `tasks.user_id` matches the logged-in user's ID or when the user has a `list_members` row for the task's `list_id`. An inaccessible or missing task returns **404**, so the response does not reveal whether another user's task exists.
+
+For example, task lookup uses the equivalent of:
+
+```sql
+WHERE tasks.id = ?
+  AND (
+    tasks.user_id = ?
+    OR tasks.list_id IN (
+      SELECT list_id FROM list_members WHERE user_id = ?
+    )
+  )
+```
+
+The active shared list is stored in `session["list_id"]`. `get_active_list()` checks membership on every request instead of trusting the session value. `POST /lists/switch` also returns **404** when the logged-in user is not a member of the requested list.
 
 ### Account routes
 
 | Method   | Route                     | Function          | Description |
 | -------- | ------------------------- | ----------------- | ----------- |
-| GET      | `/signup`                 | `register_form`   | Show the sign up form (logged-in users are sent to Profile) |
-| POST     | `/signup`                 | `register`        | Validate, hash the password, create the account, and log in |
+| GET      | `/signup`                 | `register_form`   | Show the sign up form (logged-in users are sent to the To-Do List) |
+| POST     | `/signup`                 | `register`        | Validate, hash the password, create the account, log in, and open the To-Do List |
 | GET/POST | `/login`                  | `login`           | Show the login form / check the password and start a session |
 | POST     | `/logout`                 | `logout`          | Clear the session (GET returns 405) |
 | GET      | `/profile`                | `profile_form`    | Show the profile page (login required) |
@@ -203,8 +239,10 @@ Tasks are not linked to users yet. Owner-based access control (each user sees on
 
 | Table | Columns | Purpose |
 | ----- | ------- | ------- |
-| `tasks` | `id`, `title`, `due_date`, `priority`, `tag`, `is_done`, `created_at` | To-do items (Lab 1) |
+| `tasks` | `id`, `user_id` → `users.id`, `list_id` → `lists.id` (nullable), `title`, `due_date`, `priority`, `tag`, `is_done`, `created_at` | Personal and shared tasks. A null `list_id` means the task is personal. |
 | `users` | `id`, `username` (unique), `email` (unique), `display_name`, `password_hash`, `created_at` | Accounts |
+| `lists` | `id`, `owner_id` → `users.id`, `name` | Shared lists and the user who created each list |
+| `list_members` | `list_id` → `lists.id`, `user_id` → `users.id` | Users who may view and work with a shared list. The list owner also has a membership row. |
 | `password_resets` | `id`, `user_id` → `users.id`, `token_hash` (unique), `expires_at`, `used` | Password reset requests |
 
 ### Filter and Sort Parameters
@@ -254,7 +292,7 @@ case-insensitively via `COLLATE NOCASE`.
 3. The database is checked for a duplicate username (case-insensitive) or email.
 4. If anything fails, the form is shown again with a message under each field, keeping what the user typed (except passwords).
 5. If everything passes, the password is hashed with `generate_password_hash()` and the account is inserted into `users`. The `UNIQUE` constraints are a backstop if two sign-ups with the same username arrive at once.
-6. The new user is logged in (`session.clear()`, then `session["user_id"]`) and sent to Profile with *"Your account was created. Welcome!"*
+6. The new user is logged in (`session.clear()`, then `session["user_id"]`) and sent to the To-Do List with *"Your account was created. Welcome!"*
 
 ### Profile
 
@@ -267,12 +305,14 @@ The Profile page (`@login_required`) has two separate forms, so an error in one 
 
 ## Inspecting the Database
 
-We use the **SQLite Viewer** extension for VS Code (by Florian Klampfer) to inspect accounts.
+We use the **SQLite Viewer** extension for VS Code (by Florian Klampfer) to inspect application data.
 
 1. In VS Code, open Extensions (Ctrl+Shift+X), search **SQLite Viewer**, and install it.
 2. In the file explorer, click `database/todo.db`. It opens as a table view.
 3. Open the `users` table. The `password_hash` column shows values like `scrypt:32768:8:1$...`, a salted hash, never the plain password.
-4. Open `password_resets` to see reset requests: only a hash of each token is stored, with its expiry time and whether it was used.
+4. Open `tasks` to inspect each task's `user_id` and optional `list_id`.
+5. Open `lists` to inspect list ownership, then open `list_members` to see which users can access each list.
+6. Open `password_resets` to see reset requests: only a hash of each token is stored, with its expiry time and whether it was used.
 
 The extension reads the same SQLite file the Flask app opens in `get_db()`, so changes made in the app appear after refreshing the view.
 
@@ -308,7 +348,7 @@ Logging in is handled with Flask's built-in `session`, which is stored in a **si
 2. `check_password_hash()` compares the typed password with the stored hash. Passwords are never stored or compared in plain text.
 3. If the username or password is wrong, the page shows one message, *"Incorrect username or password."*, so it does not reveal which usernames exist.
 4. On success, `session.clear()` removes anything left from an earlier session, then `session["user_id"]` is set to the user's id.
-5. The user is redirected to the Profile page.
+5. The user is redirected to the To-Do List.
 
 **How the session stays valid**
 
@@ -320,7 +360,7 @@ Logging in is handled with Flask's built-in `session`, which is stored in a **si
 
 - `load_logged_in_user()` (`@app.before_request`) runs before every request and loads the logged-in user's row into `g.user`. The header uses it to show *"Hello, &lt;display name&gt;"*, the current page, and the Log out button.
 - `@login_required` protects pages such as `/profile`. If there is no `user_id` in the session, it redirects to `/login`.
-- A logged-in user who opens `/login` or `/signup` is redirected to Profile.
+- A logged-in user who opens `/login` or `/signup` is redirected to the To-Do List.
 
 **How logout ends the session**
 
