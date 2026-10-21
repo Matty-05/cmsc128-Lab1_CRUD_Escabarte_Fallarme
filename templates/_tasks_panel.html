@@ -1,7 +1,7 @@
 {# Task list + filter/sort controls. Shared by index.html and edit.html. #}
     <section class="panel" aria-labelledby="list-heading">
       <div class="list-header">
-        <h2 id="list-heading">Tasks</h2>
+        <h2 id="list-heading">{{ active_list.name if active_list else 'My tasks' }}</h2>
         <span id="task-count" class="task-count">{{ tasks|length }} task(s)</span>
       </div>
 
@@ -73,6 +73,9 @@
                 <span class="badge">{{ task.tag }}</span>
                 {% if task.due_date %}
                   <time class="task-due-date" datetime="{{ task.due_date }}">Due: {{ task.due_date | format_due }}</time>
+                {% endif %}
+                {% if active_list %}
+                  <span class="task-added-by">Added by {{ task.added_by }}</span>
                 {% endif %}
               </div>
             </div>

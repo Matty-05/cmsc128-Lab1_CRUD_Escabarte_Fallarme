@@ -185,6 +185,43 @@ def format_due(value):
     time = due.strftime("%I:%M %p").lstrip("0")
     return f"{due:%b} {due.day}, {due.year}, {time}"
 
+# The list saved in the session, but only if I am still a member. None means Personal.
+def get_active_list():
+    list_id = session.get("list_id")
+    if list_id is None:
+        return None
+    return get_db().execute(
+        """SELECT lists.* FROM lists
+           JOIN list_members ON list_members.list_id = lists.id
+           WHERE lists.id = ? AND list_members.user_id = ?""",
+        (list_id, g.user["id"]),
+    ).fetchone()
+
+# Every list I own or was added to, with the owner's name for the switcher buttons.
+def get_my_lists():
+    return get_db().execute(
+        """SELECT lists.*, users.display_name AS owner_name FROM lists
+           JOIN list_members ON list_members.list_id = lists.id
+           JOIN users ON users.id = lists.owner_id
+           WHERE list_members.user_id = ?
+           ORDER BY lists.id""",
+        (g.user["id"],),
+    ).fetchall()
+
+# Everything _list_bar.html needs. Used by the To-Do List and Edit pages.
+def get_list_bar_data():
+    active_list = get_active_list()
+    members = []
+    if active_list is not None:
+        members = get_db().execute(
+            """SELECT users.display_name FROM list_members
+               JOIN users ON users.id = list_members.user_id
+               WHERE list_members.list_id = ?
+               ORDER BY users.display_name""",
+            (active_list["id"],),
+        ).fetchall()
+    return {"lists": get_my_lists(), "active_list": active_list, "members": members}
+
 def get_filtered_tasks():
     db = get_db()
     sort_by = request.args.get("sort_by", "created_at")
@@ -193,10 +230,14 @@ def get_filtered_tasks():
     filter_tag = request.args.get("filter_tag", "")
     filter_priority = request.args.get("filter_priority", "")
 
-    condition_strings = [
-        "(user_id = ? OR list_id IN (SELECT list_id FROM list_members WHERE user_id = ?))"
-    ]
-    parameter_values = [g.user["id"], g.user["id"]]
+    # Personal shows only my tasks outside any list; a shared list shows all of its tasks.
+    active_list = get_active_list()
+    if active_list is None:
+        condition_strings = ["user_id = ? AND list_id IS NULL"]
+        parameter_values = [g.user["id"]]
+    else:
+        condition_strings = ["list_id = ?"]
+        parameter_values = [active_list["id"]]
 
     if filter_tag: 
         condition_strings.append("tag = ?")
@@ -215,12 +256,17 @@ def get_filtered_tasks():
         sort_by = "created_at"
     order_expression = SORT_COLUMNS[sort_by]
 
-    return db.execute(f"SELECT * FROM tasks {where_clause} ORDER BY {order_expression} {sort_order}", parameter_values).fetchall()
+    # added_by: who created the task, shown in shared lists.
+    return db.execute(
+        f"""SELECT *, (SELECT display_name FROM users WHERE users.id = tasks.user_id) AS added_by
+            FROM tasks {where_clause} ORDER BY {order_expression} {sort_order}""",
+        parameter_values,
+    ).fetchall()
 
 @app.route("/")
 @login_required
 def index():
-    return render_template("index.html", tasks=get_filtered_tasks())
+    return render_template("index.html", tasks=get_filtered_tasks(), **get_list_bar_data())
 
 @app.route("/add", methods=["POST"])
 @login_required
@@ -276,7 +322,7 @@ def edit_task_form(task_id):
     ).fetchone()
     if task is None:
         abort(404)
-    return render_template("edit.html", task=task, tasks=get_filtered_tasks())
+    return render_template("edit.html", task=task, tasks=get_filtered_tasks(), **get_list_bar_data())
 
 @app.route("/edit/<int:task_id>", methods=["POST"])
 @login_required
@@ -321,7 +367,7 @@ def delete_task(task_id):
 def create_list():
     name = request.form.get("name", "").strip()
     if not name:
-        flash("Enter a list name.")
+        flash("Enter a list name.", "error")
         return redirect_to_index()
 
     db = get_db()
@@ -334,6 +380,24 @@ def create_list():
         (cursor.lastrowid, g.user["id"]),
     )
     db.commit()
+    # Open the new list right away so the user sees what they just made.
+    session["list_id"] = cursor.lastrowid
+    return redirect_to_index()
+
+
+@app.route("/lists/switch", methods=["POST"])
+@login_required
+def switch_list():
+    # An empty value means Personal. Any other id must be a list I am a member of.
+    list_id = request.form.get("list_id", type=int)
+    if list_id is not None:
+        membership = get_db().execute(
+            "SELECT 1 FROM list_members WHERE list_id = ? AND user_id = ?",
+            (list_id, g.user["id"]),
+        ).fetchone()
+        if membership is None:
+            abort(404)
+    session["list_id"] = list_id
     return redirect_to_index()
 
 
@@ -350,18 +414,22 @@ def add_list_member(list_id):
         abort(404)
 
     user = db.execute(
-        "SELECT id FROM users WHERE username = ? COLLATE NOCASE OR email = ?",
+        "SELECT id, display_name FROM users WHERE username = ? COLLATE NOCASE OR email = ?",
         (identifier, identifier.lower()),
     ).fetchone()
     if user is None:
-        flash("No account matches that username or email.")
+        flash("No account matches that username or email.", "error")
         return redirect_to_index()
 
-    db.execute(
+    cursor = db.execute(
         "INSERT OR IGNORE INTO list_members (list_id, user_id) VALUES (?, ?)",
         (list_id, user["id"]),
     )
     db.commit()
+    if cursor.rowcount == 0:
+        flash(f"{user['display_name']} is already in this list.", "error")
+    else:
+        flash(f"Added {user['display_name']} to this list.", "success")
     return redirect_to_index()
 
 
@@ -370,7 +438,7 @@ def add_list_member(list_id):
 @app.route("/signup", methods=["GET"])
 def register_form():
     if g.user:
-        return redirect(url_for("profile_form"))
+        return redirect(url_for("index"))
     return render_template("signup.html")
 
 @app.route("/signup", methods=["POST"])
@@ -435,7 +503,7 @@ def register():
     session.clear()
     session["user_id"] = cursor.lastrowid
     flash("Your account was created. Welcome!")
-    return redirect(url_for("profile_form"))
+    return redirect(url_for("index"))
 
 
 # Profile:
