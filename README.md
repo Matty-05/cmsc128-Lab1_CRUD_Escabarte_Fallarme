@@ -45,6 +45,7 @@ auth library, so we can explain every step ourselves:
 │   └── schema.sql            # SQLite tables: users, tasks, lists, list_members, password_resets
 ├── templates/                # Jinja2 HTML templates
 │   ├── _header.html          # Shared header: greeting, navigation, Log out
+│   ├── _list_bar.html        # List switcher, list creation, and member controls
 │   ├── _tasks_panel.html     # Task list + filter/sort controls, shared by both task pages
 │   ├── index.html            # Task list + add-task form
 │   ├── edit.html             # Edit-task form
@@ -145,7 +146,7 @@ Create four accounts at `/signup` with the usernames `demo1`, `demo2`, `demo3`, 
 python seed.py demo1 demo2 demo3 demo4
 ```
 
-The script adds four personal tasks to each account and creates a `Demo Group List` shared by all four accounts.
+The script adds four personal tasks to each account, creates a `Demo Group List` shared by all four accounts, and adds one shared task. Due dates are calculated from the day the script runs. Running the command again skips personal and shared tasks that were already added.
 
 ### Notes for collaborators
 
@@ -221,6 +222,8 @@ WHERE tasks.id = ?
 ```
 
 The active shared list is stored in `session["list_id"]`. `get_active_list()` checks membership on every request instead of trusting the session value. `POST /lists/switch` also returns **404** when the logged-in user is not a member of the requested list.
+
+The list bar shows **My tasks** and every shared list the user can access. A shared list displays its members and the name of the user who added each task. Any logged-in user can create a list, while only the list owner sees and may use the form for adding members.
 
 ### Account routes
 
