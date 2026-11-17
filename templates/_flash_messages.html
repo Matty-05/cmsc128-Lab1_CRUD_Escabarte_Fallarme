@@ -1,0 +1,10 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-messages" aria-label="Notifications">
+      {% for category, message in messages %}
+        <p class="{{ 'form-error' if category == 'error' else 'form-success' }}"
+           role="{{ 'alert' if category == 'error' else 'status' }}">{{ message }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}

@@ -17,10 +17,6 @@
       <h2 id="login-heading">Log in</h2>
       <p class="auth-intro">Welcome back. Log in to see your tasks.</p>
 
-      {% for message in get_flashed_messages() %}
-        <p class="form-success" role="status">{{ message }}</p>
-      {% endfor %}
-
       {% if error %}
         <p class="form-error" role="alert">{{ error }}</p>
       {% endif %}

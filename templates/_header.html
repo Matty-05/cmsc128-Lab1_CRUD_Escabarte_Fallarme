@@ -9,9 +9,9 @@
       {% if g.user %}
         <span class="greeting">Hello, <strong>{{ g.user.display_name }}</strong></span>
         <a href="{{ url_for('tasks.index') }}" class="nav-link"
-           {% if request.endpoint in ('index', 'edit_task_form') %}aria-current="page"{% endif %}>Tasks</a>
+           {% if request.endpoint in ('tasks.index', 'tasks.edit_task_form') %}aria-current="page"{% endif %}>Tasks</a>
         <a href="{{ url_for('auth.profile_form') }}" class="nav-link"
-           {% if request.endpoint in ('profile_form', 'update_profile') %}aria-current="page"{% endif %}>Profile</a>
+           {% if request.endpoint in ('auth.profile_form', 'auth.update_profile') %}aria-current="page"{% endif %}>Profile</a>
         <form action="{{ url_for('auth.logout') }}" method="POST" class="logout-form">
           <button type="submit" class="nav-link nav-outline">Log out</button>
         </form>
@@ -24,10 +24,11 @@
         </script>
       {% else %}
         <a href="{{ url_for('auth.login') }}" class="nav-link"
-           {% if request.endpoint == 'login' %}aria-current="page"{% else %}data-outline{% endif %}>Log in</a>
+           {% if request.endpoint == 'auth.login' %}aria-current="page"{% else %}data-outline{% endif %}>Log in</a>
         <a href="{{ url_for('auth.register_form') }}" class="nav-link"
-           {% if request.endpoint in ('register_form', 'register') %}aria-current="page"{% else %}data-outline{% endif %}>Sign up</a>
+           {% if request.endpoint in ('auth.register_form', 'auth.register') %}aria-current="page"{% else %}data-outline{% endif %}>Sign up</a>
       {% endif %}
     </nav>
   </div>
 </header>
+{% include "_flash_messages.html" %}
