@@ -10,7 +10,7 @@
         {% endif %}
       {% endfor %}
 
-      <form action="{{ url_for('switch_list', **request.args) }}" method="POST" class="list-tabs">
+      <form action="{{ url_for('lists.switch_list', **request.args) }}" method="POST" class="list-tabs">
         <button type="submit" name="list_id" value="" class="list-tab"
                 {% if not active_list %}aria-current="true"{% endif %}>My tasks</button>
         {% for list in lists %}
@@ -27,7 +27,7 @@
       {% endif %}
 
       <div class="list-forms">
-        <form action="{{ url_for('create_list', **request.args) }}" method="POST" class="field">
+        <form action="{{ url_for('lists.create_list', **request.args) }}" method="POST" class="field">
           <label for="new-list-name">New shared list</label>
           <div class="inline-field">
             <input type="text" id="new-list-name" name="name" maxlength="60"
@@ -38,7 +38,7 @@
 
         {# Only the owner can add people, so only the owner sees this form. #}
         {% if active_list and active_list.owner_id == g.user.id %}
-          <form action="{{ url_for('add_list_member', list_id=active_list.id, **request.args) }}" method="POST" class="field">
+          <form action="{{ url_for('lists.add_list_member', list_id=active_list.id, **request.args) }}" method="POST" class="field">
             <label for="member-identifier">Add a member to {{ active_list.name }}</label>
             <div class="inline-field">
               <input type="text" id="member-identifier" name="identifier"
