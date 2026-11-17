@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ code }}: {{ title }} &middot; CMSC 128 Lab 4</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+  {% include "_header.html" %}
+  <main class="auth-layout">
+    <section class="panel auth-card" aria-labelledby="error-heading">
+      <h2 id="error-heading">{{ code }}: {{ title }}</h2>
+      <p>{{ message }}</p>
+      <a class="btn btn-primary btn-block" href="{{ url_for('tasks.index') if g.user else url_for('auth.login') }}">{{ 'Back to tasks' if g.user else 'Back to log in' }}</a>
+    </section>
+  </main>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
