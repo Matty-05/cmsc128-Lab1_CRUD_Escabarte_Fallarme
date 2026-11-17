@@ -35,7 +35,11 @@ auth library, so we can explain every step ourselves:
 
 ```
 .
-├── app.py                    # Flask application: routes, CRUD, auth, sessions
+├── app.py                    # Creates the Flask app and registers the blueprints
+├── db.py                     # SQLite connection per request
+├── auth.py                   # Blueprint: login, logout, signup, password reset, profile, login_required
+├── tasks.py                  # Blueprint: task CRUD with ownership checks
+├── lists.py                  # Blueprint: shared lists, list switcher, membership checks
 ├── seed.py                   # Demo tasks and a shared list for four existing accounts
 ├── validators.py             # Shared validation helpers (required fields, username, email, password)
 ├── requirements.txt          # Python dependencies
