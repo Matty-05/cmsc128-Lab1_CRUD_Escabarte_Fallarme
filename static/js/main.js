@@ -44,6 +44,9 @@ function finalizePending() {
     clearTimeout(pending.timeoutId);
     clearInterval(pending.intervalId);
     pending.item.classList.remove('pending-delete');
+    document.querySelectorAll('.delete-form button[type="submit"]').forEach(function (button) {
+      button.disabled = false;
+    });
     modal.hidden = true;
     pending = null;
  }
@@ -56,13 +59,20 @@ function finalizePending() {
       var titleEl = item.querySelector('.task-title');
       var title = titleEl ? titleEl.textContent : 'this task';
 
-      // Ask for confirmation first
-      var confirmed = window.confirm('Delete "' + title + '"?');
-      if (!confirmed) return; // user cancelled, do nothing
-
-      if (pending) finalizePending();
+      var confirmation = form.querySelector('.delete-confirmation');
+      if (form.dataset.confirmed !== 'true') {
+        confirmation.hidden = false;
+        confirmation.querySelector('.cancel-delete').focus();
+        return;
+      }
+      delete form.dataset.confirmed;
+      confirmation.hidden = true;
+      if (pending) return;
 
       item.classList.add('pending-delete');
+      document.querySelectorAll('.delete-form button[type="submit"]').forEach(function (button) {
+        button.disabled = true;
+      });
       messageEl.textContent = '"' + title + '" will be deleted.';
 
       var secondsLeft = 3;
@@ -78,6 +88,17 @@ function finalizePending() {
       var timeoutId = setTimeout(finalizePending, 3000);
 
       pending = { form: form, item: item, timeoutId: timeoutId, intervalId: intervalId };
+    });
+    form.querySelector('.confirm-delete').addEventListener('click', function () {
+      form.dataset.confirmed = 'true';
+      form.requestSubmit();
+    });
+    form.querySelector('.cancel-delete').addEventListener('click', function () {
+      form.querySelector('.delete-confirmation').hidden = true;
+      form.querySelector('button[type="submit"]').focus();
+    });
+    form.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') form.querySelector('.cancel-delete').click();
     });
   });
 
@@ -118,3 +139,26 @@ document.querySelectorAll('.show-password').forEach(function (btn) {
     event.returnValue = '';
   });
 })();
+
+// Keep submitter values (notably list_id) when disabling submit buttons.
+document.addEventListener('submit', function (event) {
+  if (event.defaultPrevented) return;
+  var form = event.target;
+  if (form.dataset.submitting) {
+    event.preventDefault();
+    return;
+  }
+  var submitter = event.submitter;
+  if (submitter && submitter.name) {
+    var value = document.createElement('input');
+    value.type = 'hidden';
+    value.name = submitter.name;
+    value.value = submitter.value;
+    form.appendChild(value);
+  }
+  form.dataset.submitting = 'true';
+  form.setAttribute('aria-busy', 'true');
+  form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(function (button) {
+    button.disabled = true;
+  });
+});
