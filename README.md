@@ -422,3 +422,31 @@ This app does **not send email**. Instead, the reset link is **shown on the Forg
 - The other protections still apply: the token is random and cannot be guessed, it works only once, it expires after 15 minutes, and only its hash is stored in the database.
 
 To make this production-ready, the app would email the link (for example with Flask-Mail and SMTP credentials stored in `.env`) and never show it on the page.
+
+## Lab 4 demo deployment with ngrok
+
+Install the Windows ngrok agent and connect your account following the [ngrok setup instructions](https://ngrok.com/docs/start). Configure your own token locally:
+
+```powershell
+ngrok config add-authtoken YOUR_NGROK_AUTHTOKEN
+```
+
+From the project folder, activate the environment and initialize the database, then run Flask without its debugger:
+
+```powershell
+.\venv\Scripts\Activate.ps1
+python -c "from app import init_db; init_db()"
+python -m flask --app app run --host 127.0.0.1 --port 5000 --no-debugger --no-reload
+```
+
+In another terminal, start the tunnel:
+
+```powershell
+ngrok http 5000
+```
+
+Keep both terminals open and use the HTTPS forwarding URL printed by ngrok. Use demo accounts only: password recovery currently displays reset links on screen. This temporary classroom demo uses the Flask development server; it is not a production deployment.
+
+To verify access from another network, turn off Wi-Fi on a phone and open that HTTPS URL over mobile data. Check signup/login, personal task CRUD, shared-list switching and membership, delete confirmation and Undo, profile updates, and logout. Refresh after saving to confirm persistence. Check that another user's personal task and a non-member's list return the styled 404 page.
+
+External-network verification is pending. After testing, record the date, forwarding URL, network/device, and observed results here. A local browser check alone does not complete this requirement. Stop ngrok after the demo to close public access.
