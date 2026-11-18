@@ -341,6 +341,7 @@ body {
 
 .task-actions {
   display: flex;
+  align-items: flex-start;
   gap: 0.35rem;
   flex-shrink: 0;
 }
@@ -606,3 +607,25 @@ a.btn-block {
 .list-forms .field { margin-bottom: 0; }
 
 .inline-field { display: flex; gap: 0.5rem; }
+
+.task-form-panel { position: sticky; top: 1rem; }
+.layout > *, .field, .inline-field input { min-width: 0; }
+.flash-messages { max-width: 1000px; margin: 1rem auto; padding: 0 1rem; }
+button:disabled, input[type="submit"]:disabled { opacity: 0.6; cursor: wait; }
+.delete-confirmation { max-width: 240px; padding: 0.5rem; border: 1px solid var(--danger); border-radius: 4px; }
+.delete-confirmation p { margin: 0 0 0.5rem; overflow-wrap: anywhere; }
+.list-tab, .list-members, .greeting { overflow-wrap: anywhere; }
+
+@media (max-width: 800px) {
+  .task-form-panel { position: static; }
+}
+
+@media (max-width: 480px) {
+  .field-row, .list-forms { grid-template-columns: minmax(0, 1fr); }
+  .inline-field, .form-actions { flex-wrap: wrap; }
+  .task-item { flex-wrap: wrap; }
+  .task-actions { width: 100%; justify-content: flex-end; }
+  .undo-modal { flex-wrap: wrap; }
+  .undo-modal #undo-message { white-space: normal; overflow-wrap: anywhere; }
+  .list-header { flex-wrap: wrap; }
+}

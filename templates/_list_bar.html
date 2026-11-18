@@ -2,14 +2,6 @@
     <section class="panel list-bar" aria-labelledby="lists-heading">
       <h2 id="lists-heading">Lists</h2>
 
-      {% for category, message in get_flashed_messages(with_categories=true) %}
-        {% if category == 'error' %}
-          <p class="form-error" role="alert">{{ message }}</p>
-        {% else %}
-          <p class="form-success" role="status">{{ message }}</p>
-        {% endif %}
-      {% endfor %}
-
       <form action="{{ url_for('lists.switch_list', **request.args) }}" method="POST" class="list-tabs">
         <button type="submit" name="list_id" value="" class="list-tab"
                 {% if not active_list %}aria-current="true"{% endif %}>My tasks</button>

@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 from dotenv import load_dotenv
-from flask import Flask
+from flask import Flask, render_template
 
 import auth
 import lists
@@ -20,6 +20,26 @@ app.teardown_appcontext(close_db)
 app.register_blueprint(auth.bp)
 app.register_blueprint(tasks.bp)
 app.register_blueprint(lists.bp)
+
+
+@app.errorhandler(400)
+@app.errorhandler(403)
+@app.errorhandler(404)
+@app.errorhandler(405)
+@app.errorhandler(500)
+def error_page(error):
+    messages = {
+        400: ("Invalid request", "The submitted request is missing required information or is invalid."),
+        403: ("Access denied", "You do not have permission to perform this action."),
+        404: ("Page not found", "This page or item is unavailable."),
+        405: ("Method not allowed", "This address does not support that action. Please use the page controls."),
+        500: ("Something went wrong", "We could not complete your request. Please try again later."),
+    }
+    title, message = messages[error.code]
+    response = error.get_response()
+    response.set_data(render_template("error.html", code=error.code, title=title, message=message))
+    response.content_type = "text/html; charset=utf-8"
+    return response
 
 def init_db():
     with app.app_context():

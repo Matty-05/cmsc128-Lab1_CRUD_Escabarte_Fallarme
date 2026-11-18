@@ -61,7 +61,7 @@
               data-due-date="{{ task.due_date }}"
               data-is-done="{{ 1 if task.is_done else 0 }}">
             <form action="{{ url_for('tasks.toggle_task', task_id=task.id, **request.args) }}" method="POST" class="toggle-form">
-              <input type="checkbox" onchange="this.form.submit()"
+              <input type="checkbox" onchange="this.form.requestSubmit()"
                      aria-label="Mark {{ task.title }} as done"
                      {% if task.is_done %}checked{% endif %} />
             </form>
@@ -84,6 +84,11 @@
               <a href="{{ url_for('tasks.edit_task_form', task_id=task.id, **request.args) }}" class="icon-btn">Edit</a>
               <form action="{{ url_for('tasks.delete_task', task_id=task.id, **request.args) }}" method="POST" class="delete-form">
                 <button type="submit" class="icon-btn delete">Delete</button>
+                <div class="delete-confirmation" role="group" aria-label="Confirm deletion" hidden>
+                  <p>Delete "{{ task.title }}"?</p>
+                  <button type="button" class="icon-btn delete confirm-delete">Yes, delete</button>
+                  <button type="button" class="icon-btn cancel-delete">Cancel</button>
+                </div>
               </form>
             </div>
           </li>
