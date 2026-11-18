@@ -70,7 +70,7 @@
       task.item.classList.add('pending-delete');
 
       var secondsLeft = 3;
-      undoMessage.textContent = '“' + task.title + '” will be deleted in three seconds.';
+      undoMessage.textContent = '“' + task.title + '” will be deleted in 3 seconds.';
       countdown.textContent = secondsLeft;
       undoToast.hidden = false;
       undoButton.focus({ preventScroll: true });
