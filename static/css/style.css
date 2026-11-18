@@ -270,6 +270,7 @@ dialog.task-toast::backdrop { background: rgb(23 43 77 / 30%); }
 }
 
 .task-item:last-child { border-bottom: none; }
+.task-item { scroll-margin-top: 1rem; }
 
 .task-item input[type="checkbox"] {
   width: 18px;
