@@ -103,7 +103,7 @@ def toggle_task(task_id):
     if cursor.rowcount == 0:
         abort(404)
     db.commit()
-    return redirect_to_index()
+    return redirect(url_for("tasks.index", _anchor=f"task-{task_id}", **request.args))
 
 @bp.route("/edit/<int:task_id>", methods=["GET"])
 @login_required
@@ -125,7 +125,7 @@ def edit_task(task_id):
     db = get_db()
     title = request.form["title"].strip()
     if not title:
-        return redirect(url_for("tasks.edit_task_form", task_id=task_id, **request.args))
+        return redirect(url_for("tasks.edit_task_form", task_id=task_id, _anchor=f"task-{task_id}", **request.args))
 
     due_date = request.form["due_date"]
     priority = request.form["priority"]
@@ -140,7 +140,7 @@ def edit_task(task_id):
     if cursor.rowcount == 0:
         abort(404)
     db.commit()
-    return redirect_to_index()
+    return redirect(url_for("tasks.index", _anchor=f"task-{task_id}", **request.args))
 
 @bp.route("/delete/<int:task_id>", methods=["POST"])
 @login_required

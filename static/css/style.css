@@ -48,61 +48,77 @@ body {
   font-size: 0.9rem;
 }
 
-.undo-modal {
+.task-toast {
   position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
   z-index: 1000;
   display: flex;
   align-items: center;
   gap: 16px;
-  background: #1f2937;
-  color: #f9fafb;
+  background: var(--surface);
+  color: var(--text);
   padding: 12px 18px;
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--primary);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
   font-size: 0.95rem;
-  animation: undo-toast-in 0.2s ease-out;
+  animation: task-toast-in 0.2s ease-out;
+  width: max-content;
   max-width: calc(100vw - 32px);
+  max-height: calc(100dvh - 40px);
+  overflow: auto;
+  flex-wrap: wrap;
 }
 
-.undo-modal[hidden] {
+dialog.task-toast {
+  inset: 0;
+  margin: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  width: min(400px, calc(100vw - 32px));
+  height: fit-content;
+  padding: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+#undo-modal {
+  inset: auto 0 calc(20px + env(safe-area-inset-bottom, 0px));
+  margin: 0 auto;
+}
+
+.task-toast[hidden], dialog.task-toast:not([open]) {
   display: none;
 }
 
-.undo-modal #undo-message {
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+dialog.task-toast::backdrop { background: rgb(23 43 77 / 40%); }
+.task-toast h2 { margin: 0 0 0.25rem; font-size: 1rem; color: var(--text); }
+.task-toast p { margin: 0; max-width: 36ch; overflow-wrap: anywhere; }
+dialog.task-toast p { max-width: none; }
+dialog.task-toast .delete-undo-hint { margin-top: 0.25rem; color: var(--text-muted); }
+.toast-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; }
+
+.task-toast .toast-button {
+  min-height: 44px;
+  background: var(--surface);
+  border-color: var(--control-border);
+  color: var(--text);
 }
 
-.undo-modal #undo-btn {
-  flex-shrink: 0;
-  background: #f9fafb;
-  color: #1f2937;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
+.task-toast .toast-button:hover { background: var(--bg); }
+.task-toast #undo-btn { background: var(--primary); border-color: var(--primary); color: var(--surface); }
+.task-toast #undo-btn:hover { background: var(--primary-dark); }
+.task-toast .toast-danger { background: var(--danger-text); border-color: var(--danger-text); color: var(--surface); }
+.task-toast .toast-danger:hover { background: #a32100; }
+.task-toast .toast-button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .task-toast { animation: none; }
 }
 
-.undo-modal #undo-btn:hover {
-  background: #e5e7eb;
-}
-
-@keyframes undo-toast-in {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -12px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
+@keyframes task-toast-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .layout {
@@ -266,6 +282,7 @@ body {
 }
 
 .task-item:last-child { border-bottom: none; }
+.task-item { scroll-margin-top: 1rem; }
 
 .task-item input[type="checkbox"] {
   width: 18px;
@@ -612,8 +629,6 @@ a.btn-block {
 .layout > *, .field, .inline-field input { min-width: 0; }
 .flash-messages { max-width: 1000px; margin: 1rem auto; padding: 0 1rem; }
 button:disabled, input[type="submit"]:disabled { opacity: 0.6; cursor: wait; }
-.delete-confirmation { max-width: 240px; padding: 0.5rem; border: 1px solid var(--danger); border-radius: 4px; }
-.delete-confirmation p { margin: 0 0 0.5rem; overflow-wrap: anywhere; }
 .list-tab, .list-members, .greeting { overflow-wrap: anywhere; }
 
 @media (max-width: 800px) {
@@ -625,7 +640,5 @@ button:disabled, input[type="submit"]:disabled { opacity: 0.6; cursor: wait; }
   .inline-field, .form-actions { flex-wrap: wrap; }
   .task-item { flex-wrap: wrap; }
   .task-actions { width: 100%; justify-content: flex-end; }
-  .undo-modal { flex-wrap: wrap; }
-  .undo-modal #undo-message { white-space: normal; overflow-wrap: anywhere; }
   .list-header { flex-wrap: wrap; }
 }

@@ -57,10 +57,12 @@
 
       <ul id="task-list" class="task-list">
         {% for task in tasks %}
-          <li class="task-item {% if task.is_done %}done{% endif %}"
+          <li id="task-{{ task.id }}" tabindex="-1"
+              class="task-item {% if task.is_done %}done{% endif %}"
               data-due-date="{{ task.due_date }}"
               data-is-done="{{ 1 if task.is_done else 0 }}">
-            <form action="{{ url_for('tasks.toggle_task', task_id=task.id, **request.args) }}" method="POST" class="toggle-form">
+            <form action="{{ url_for('tasks.toggle_task', task_id=task.id, **request.args) }}" method="POST" class="toggle-form"
+                  data-scroll-return="{{ url_for('tasks.index', _anchor='task-' ~ task.id, **request.args) }}">
               <input type="checkbox" onchange="this.form.requestSubmit()"
                      aria-label="Mark {{ task.title }} as done"
                      {% if task.is_done %}checked{% endif %} />
@@ -81,14 +83,9 @@
             </div>
 
             <div class="task-actions">
-              <a href="{{ url_for('tasks.edit_task_form', task_id=task.id, **request.args) }}" class="icon-btn">Edit</a>
+              <a href="{{ url_for('tasks.edit_task_form', task_id=task.id, _anchor='task-' ~ task.id, **request.args) }}" class="icon-btn" data-task-edit>Edit</a>
               <form action="{{ url_for('tasks.delete_task', task_id=task.id, **request.args) }}" method="POST" class="delete-form">
-                <button type="submit" class="icon-btn delete">Delete</button>
-                <div class="delete-confirmation" role="group" aria-label="Confirm deletion" hidden>
-                  <p>Delete "{{ task.title }}"?</p>
-                  <button type="button" class="icon-btn delete confirm-delete">Yes, delete</button>
-                  <button type="button" class="icon-btn cancel-delete">Cancel</button>
-                </div>
+                <button type="button" class="icon-btn delete" aria-haspopup="dialog">Delete</button>
               </form>
             </div>
           </li>
@@ -106,9 +103,21 @@
       {% endif %}
     </section>
 
-  <div id="undo-modal" class="undo-modal" role="alertdialog" aria-live="assertive" hidden>
-    <p id="undo-message">Task deleted.</p>
-    <button type="button" id="undo-btn" class="btn btn-secondary">
-      Undo (<span id="undo-countdown">3</span>s)
+  <dialog id="delete-confirmation" class="task-toast" aria-labelledby="delete-heading" aria-describedby="delete-message delete-undo-hint">
+    <div>
+      <h2 id="delete-heading">Delete task?</h2>
+      <p id="delete-message"></p>
+      <p id="delete-undo-hint" class="delete-undo-hint">You’ll have 3 seconds to undo.</p>
+    </div>
+    <div class="toast-actions">
+      <button type="button" id="cancel-delete" class="btn toast-button" autofocus>Cancel</button>
+      <button type="button" id="confirm-delete" class="btn toast-button toast-danger">Delete task</button>
+    </div>
+  </dialog>
+
+  <div id="undo-modal" class="task-toast" role="group" aria-labelledby="undo-message" hidden>
+    <p id="undo-message"></p>
+    <button type="button" id="undo-btn" class="btn toast-button">
+      Undo <span aria-hidden="true">(<span id="undo-countdown">3</span>s)</span>
     </button>
   </div>
