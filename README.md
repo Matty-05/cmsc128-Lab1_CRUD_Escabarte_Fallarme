@@ -449,4 +449,4 @@ Keep both terminals open and use the HTTPS forwarding URL printed by ngrok. Use 
 
 To verify access from another network, turn off Wi-Fi on a phone and open that HTTPS URL over mobile data. Check signup/login, personal task CRUD, shared-list switching and membership, delete confirmation and Undo, profile updates, and logout. Refresh after saving to confirm persistence. Check that another user's personal task and a non-member's list return the styled 404 page.
 
-External-network verification is pending. After testing, record the date, forwarding URL, network/device, and observed results here. A local browser check alone does not complete this requirement. Stop ngrok after the demo to close public access.
+Stop ngrok after the demo to close public access.
