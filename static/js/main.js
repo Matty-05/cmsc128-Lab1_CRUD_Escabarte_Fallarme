@@ -117,26 +117,37 @@ document.querySelectorAll('.show-password').forEach(function (btn) {
   });
 });
 
-// Keep the selected row at the same viewport offset when opening the sticky editor.
+// Keep the selected row at the same viewport offset after Edit or Toggle.
 (function () {
-  var storageKey = 'task-edit-position';
+  var storageKey = 'task-row-position';
+
+  function rememberRow(control, destination, restoreCheckbox) {
+    try {
+      sessionStorage.setItem(storageKey, JSON.stringify({
+        url: new URL(destination, location.href).href,
+        top: control.closest('.task-item').getBoundingClientRect().top,
+        restoreCheckbox: restoreCheckbox
+      }));
+    } catch {
+      // The URL fragment still anchors to the selected row if storage is unavailable.
+    }
+  }
 
   document.querySelectorAll('[data-task-edit]').forEach(function (link) {
     link.addEventListener('click', function (event) {
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      try {
-        sessionStorage.setItem(storageKey, JSON.stringify({
-          url: link.href,
-          top: link.closest('.task-item').getBoundingClientRect().top
-        }));
-      } catch {
-        // The edit link still anchors to the selected row if storage is unavailable.
-      }
+      rememberRow(link, link.href, false);
+    });
+  });
+
+  document.querySelectorAll('.toggle-form[data-scroll-return]').forEach(function (form) {
+    form.addEventListener('submit', function () {
+      if (!form.dataset.submitting) rememberRow(form, form.dataset.scrollReturn, true);
     });
   });
 
   var editor = document.getElementById('task-edit-panel');
-  if (!editor || !location.hash.startsWith('#task-')) return;
+  if (!location.hash.startsWith('#task-')) return;
 
   var position;
   try {
@@ -148,13 +159,16 @@ document.querySelectorAll('.show-password').forEach(function (btn) {
 
   window.addEventListener('load', function () {
     requestAnimationFrame(function () {
-      if (window.matchMedia('(max-width: 800px)').matches) {
+      if (editor && window.matchMedia('(max-width: 800px)').matches) {
         editor.scrollIntoView({ block: 'start' });
         return;
       }
       var row = document.getElementById(location.hash.slice(1));
       if (row && position && position.url === location.href && Number.isFinite(position.top)) {
         window.scrollBy(0, row.getBoundingClientRect().top - position.top);
+        if (position.restoreCheckbox) {
+          row.querySelector('.toggle-form input[type="checkbox"]').focus({ preventScroll: true });
+        }
       }
     });
   });

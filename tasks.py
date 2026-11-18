@@ -103,7 +103,7 @@ def toggle_task(task_id):
     if cursor.rowcount == 0:
         abort(404)
     db.commit()
-    return redirect_to_index()
+    return redirect(url_for("tasks.index", _anchor=f"task-{task_id}", **request.args))
 
 @bp.route("/edit/<int:task_id>", methods=["GET"])
 @login_required

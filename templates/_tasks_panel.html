@@ -61,7 +61,8 @@
               class="task-item {% if task.is_done %}done{% endif %}"
               data-due-date="{{ task.due_date }}"
               data-is-done="{{ 1 if task.is_done else 0 }}">
-            <form action="{{ url_for('tasks.toggle_task', task_id=task.id, **request.args) }}" method="POST" class="toggle-form">
+            <form action="{{ url_for('tasks.toggle_task', task_id=task.id, **request.args) }}" method="POST" class="toggle-form"
+                  data-scroll-return="{{ url_for('tasks.index', _anchor='task-' ~ task.id, **request.args) }}">
               <input type="checkbox" onchange="this.form.requestSubmit()"
                      aria-label="Mark {{ task.title }} as done"
                      {% if task.is_done %}checked{% endif %} />
