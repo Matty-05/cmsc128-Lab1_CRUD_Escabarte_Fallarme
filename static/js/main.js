@@ -53,7 +53,7 @@
         var item = button.closest('.task-item');
         var title = item.querySelector('.task-title').textContent.trim();
         selected = { button: button, form: button.form, item: item, title: title };
-        deleteMessage.textContent = '“' + title + '” will be removed.';
+        deleteMessage.textContent = '“' + title + '” will be deleted.';
         confirmation.showModal();
       });
     });

@@ -102,10 +102,11 @@
       {% endif %}
     </section>
 
-  <dialog id="delete-confirmation" class="task-toast" aria-labelledby="delete-heading" aria-describedby="delete-message">
+  <dialog id="delete-confirmation" class="task-toast" aria-labelledby="delete-heading" aria-describedby="delete-message delete-undo-hint">
     <div>
       <h2 id="delete-heading">Delete task?</h2>
       <p id="delete-message"></p>
+      <p id="delete-undo-hint" class="delete-undo-hint">You can undo this for 3 seconds.</p>
     </div>
     <div class="toast-actions">
       <button type="button" id="cancel-delete" class="btn toast-button" autofocus>Cancel</button>

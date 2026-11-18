@@ -50,21 +50,17 @@ body {
 
 .task-toast {
   position: fixed;
-  inset: auto;
-  top: 20px;
-  left: 50%;
-  margin: 0;
-  transform: translateX(-50%);
   z-index: 1000;
   display: flex;
   align-items: center;
   gap: 16px;
-  background: #1f2937;
-  color: #f9fafb;
+  background: var(--surface);
+  color: var(--text);
   padding: 12px 18px;
-  border: 0;
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--primary);
   border-radius: var(--radius);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow);
   font-size: 0.95rem;
   animation: task-toast-in 0.2s ease-out;
   width: max-content;
@@ -74,39 +70,55 @@ body {
   flex-wrap: wrap;
 }
 
+dialog.task-toast {
+  inset: 0;
+  margin: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  width: min(400px, calc(100vw - 32px));
+  height: fit-content;
+  padding: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+#undo-modal {
+  inset: auto 0 calc(20px + env(safe-area-inset-bottom, 0px));
+  margin: 0 auto;
+}
+
 .task-toast[hidden], dialog.task-toast:not([open]) {
   display: none;
 }
 
-dialog.task-toast::backdrop { background: rgb(23 43 77 / 30%); }
-.task-toast h2 { margin: 0 0 0.25rem; font-size: 1rem; }
+dialog.task-toast::backdrop { background: rgb(23 43 77 / 40%); }
+.task-toast h2 { margin: 0 0 0.25rem; font-size: 1rem; color: var(--text); }
 .task-toast p { margin: 0; max-width: 36ch; overflow-wrap: anywhere; }
-.toast-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+dialog.task-toast p { max-width: none; }
+dialog.task-toast .delete-undo-hint { margin-top: 0.25rem; color: var(--text-muted); }
+.toast-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; }
 
 .task-toast .toast-button {
   min-height: 44px;
-  background: #f9fafb;
-  color: #1f2937;
+  background: var(--surface);
+  border-color: var(--control-border);
+  color: var(--text);
 }
 
-.task-toast .toast-button:hover { background: #e5e7eb; }
-.task-toast .toast-danger { background: var(--danger-text); color: #fff; }
+.task-toast .toast-button:hover { background: var(--bg); }
+.task-toast #undo-btn { background: var(--primary); border-color: var(--primary); color: var(--surface); }
+.task-toast #undo-btn:hover { background: var(--primary-dark); }
+.task-toast .toast-danger { background: var(--danger-text); border-color: var(--danger-text); color: var(--surface); }
 .task-toast .toast-danger:hover { background: #a32100; }
-.task-toast .toast-button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.task-toast .toast-button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
   .task-toast { animation: none; }
 }
 
 @keyframes task-toast-in {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -12px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .layout {
