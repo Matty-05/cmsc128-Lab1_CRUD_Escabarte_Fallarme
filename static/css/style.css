@@ -48,10 +48,12 @@ body {
   font-size: 0.9rem;
 }
 
-.undo-modal {
+.task-toast {
   position: fixed;
+  inset: auto;
   top: 20px;
   left: 50%;
+  margin: 0;
   transform: translateX(-50%);
   z-index: 1000;
   display: flex;
@@ -60,41 +62,43 @@ body {
   background: #1f2937;
   color: #f9fafb;
   padding: 12px 18px;
-  border-radius: 10px;
+  border: 0;
+  border-radius: var(--radius);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   font-size: 0.95rem;
-  animation: undo-toast-in 0.2s ease-out;
+  animation: task-toast-in 0.2s ease-out;
+  width: max-content;
   max-width: calc(100vw - 32px);
+  max-height: calc(100dvh - 40px);
+  overflow: auto;
+  flex-wrap: wrap;
 }
 
-.undo-modal[hidden] {
+.task-toast[hidden], dialog.task-toast:not([open]) {
   display: none;
 }
 
-.undo-modal #undo-message {
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+dialog.task-toast::backdrop { background: rgb(23 43 77 / 30%); }
+.task-toast h2 { margin: 0 0 0.25rem; font-size: 1rem; }
+.task-toast p { margin: 0; max-width: 36ch; overflow-wrap: anywhere; }
+.toast-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 
-.undo-modal #undo-btn {
-  flex-shrink: 0;
+.task-toast .toast-button {
+  min-height: 44px;
   background: #f9fafb;
   color: #1f2937;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
 }
 
-.undo-modal #undo-btn:hover {
-  background: #e5e7eb;
+.task-toast .toast-button:hover { background: #e5e7eb; }
+.task-toast .toast-danger { background: var(--danger-text); color: #fff; }
+.task-toast .toast-danger:hover { background: #a32100; }
+.task-toast .toast-button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .task-toast { animation: none; }
 }
 
-@keyframes undo-toast-in {
+@keyframes task-toast-in {
   from {
     opacity: 0;
     transform: translate(-50%, -12px);
@@ -612,8 +616,6 @@ a.btn-block {
 .layout > *, .field, .inline-field input { min-width: 0; }
 .flash-messages { max-width: 1000px; margin: 1rem auto; padding: 0 1rem; }
 button:disabled, input[type="submit"]:disabled { opacity: 0.6; cursor: wait; }
-.delete-confirmation { max-width: 240px; padding: 0.5rem; border: 1px solid var(--danger); border-radius: 4px; }
-.delete-confirmation p { margin: 0 0 0.5rem; overflow-wrap: anywhere; }
 .list-tab, .list-members, .greeting { overflow-wrap: anywhere; }
 
 @media (max-width: 800px) {
@@ -625,7 +627,5 @@ button:disabled, input[type="submit"]:disabled { opacity: 0.6; cursor: wait; }
   .inline-field, .form-actions { flex-wrap: wrap; }
   .task-item { flex-wrap: wrap; }
   .task-actions { width: 100%; justify-content: flex-end; }
-  .undo-modal { flex-wrap: wrap; }
-  .undo-modal #undo-message { white-space: normal; overflow-wrap: anywhere; }
   .list-header { flex-wrap: wrap; }
 }

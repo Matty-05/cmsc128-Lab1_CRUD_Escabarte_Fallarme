@@ -21,95 +21,91 @@
   });
 }
 
-  // Delete with a 3-second undo window.
-function initUndoDelete() {
-  var modal = document.getElementById('undo-modal');
-  var undoBtn = document.getElementById('undo-btn');
-  var messageEl = document.getElementById('undo-message');
-  var countdownEl = document.getElementById('undo-countdown');
-  var pending = null;
-  if (!modal) return; // this page has no task list
+  // Confirm a deletion before starting the existing three-second Undo window.
+  function initUndoDelete() {
+    var confirmation = document.getElementById('delete-confirmation');
+    if (!confirmation) return;
 
-function finalizePending() {
-  if (!pending) return;
-  clearTimeout(pending.timeoutId);
-  clearInterval(pending.intervalId);
-  modal.hidden = true;
-  pending.form.submit();
-  pending = null;
-}
+    var deleteMessage = document.getElementById('delete-message');
+    var undoToast = document.getElementById('undo-modal');
+    var undoButton = document.getElementById('undo-btn');
+    var undoMessage = document.getElementById('undo-message');
+    var countdown = document.getElementById('undo-countdown');
+    var deleteButtons = document.querySelectorAll('.delete-form .delete');
+    var selected = null;
+    var pending = null;
 
-  function cancelPending() {
-    if (!pending) return;
-    clearTimeout(pending.timeoutId);
-    clearInterval(pending.intervalId);
-    pending.item.classList.remove('pending-delete');
-    document.querySelectorAll('.delete-form button[type="submit"]').forEach(function (button) {
-      button.disabled = false;
-    });
-    modal.hidden = true;
-    pending = null;
- }
+    function closeConfirmation() {
+      var task = selected;
+      selected = null;
+      confirmation.close();
+      task.button.focus({ preventScroll: true });
+      return task;
+    }
 
-  document.querySelectorAll('.delete-form').forEach(function (form) {
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
+    function setDeleteDisabled(disabled) {
+      deleteButtons.forEach(function (button) { button.disabled = disabled; });
+    }
 
-      var item = form.closest('.task-item');
-      var titleEl = item.querySelector('.task-title');
-      var title = titleEl ? titleEl.textContent : 'this task';
-
-      var confirmation = form.querySelector('.delete-confirmation');
-      if (form.dataset.confirmed !== 'true') {
-        confirmation.hidden = false;
-        confirmation.querySelector('.cancel-delete').focus();
-        return;
-      }
-      delete form.dataset.confirmed;
-      confirmation.hidden = true;
-      if (pending) return;
-
-      item.classList.add('pending-delete');
-      document.querySelectorAll('.delete-form button[type="submit"]').forEach(function (button) {
-        button.disabled = true;
+    deleteButtons.forEach(function (button) {
+      button.addEventListener('click', function () {
+        if (pending || confirmation.open) return;
+        var item = button.closest('.task-item');
+        var title = item.querySelector('.task-title').textContent.trim();
+        selected = { button: button, form: button.form, item: item, title: title };
+        deleteMessage.textContent = '“' + title + '” will be removed.';
+        confirmation.showModal();
       });
-      messageEl.textContent = '"' + title + '" will be deleted.';
+    });
+
+    document.getElementById('cancel-delete').addEventListener('click', closeConfirmation);
+    confirmation.addEventListener('cancel', function (event) {
+      event.preventDefault();
+      closeConfirmation();
+    });
+
+    document.getElementById('confirm-delete').addEventListener('click', function () {
+      var task = closeConfirmation();
+      setDeleteDisabled(true);
+      task.item.classList.add('pending-delete');
 
       var secondsLeft = 3;
-      countdownEl.textContent = secondsLeft;
-      modal.hidden = false;
+      undoMessage.textContent = '“' + task.title + '” will be deleted in three seconds.';
+      countdown.textContent = secondsLeft;
+      undoToast.hidden = false;
+      undoButton.focus({ preventScroll: true });
 
-      var intervalId = setInterval(function () {
-        secondsLeft -= 1;
-        if (secondsLeft >= 0) countdownEl.textContent = secondsLeft;
-        if (secondsLeft <= 0) clearInterval(intervalId);
-      }, 1000);
+      pending = {
+        task: task,
+        intervalId: setInterval(function () {
+          countdown.textContent = --secondsLeft;
+        }, 1000),
+        timeoutId: setTimeout(function () {
+          clearInterval(pending.intervalId);
+          undoToast.hidden = true;
+          task.form.submit();
+        }, 3000)
+      };
+    });
 
-      var timeoutId = setTimeout(finalizePending, 3000);
+    undoButton.addEventListener('click', function () {
+      if (!pending) return;
+      clearTimeout(pending.timeoutId);
+      clearInterval(pending.intervalId);
+      var task = pending.task;
+      pending = null;
+      task.item.classList.remove('pending-delete');
+      undoToast.hidden = true;
+      setDeleteDisabled(false);
+      task.button.focus({ preventScroll: true });
+    });
+  }
 
-      pending = { form: form, item: item, timeoutId: timeoutId, intervalId: intervalId };
-    });
-    form.querySelector('.confirm-delete').addEventListener('click', function () {
-      form.dataset.confirmed = 'true';
-      form.requestSubmit();
-    });
-    form.querySelector('.cancel-delete').addEventListener('click', function () {
-      form.querySelector('.delete-confirmation').hidden = true;
-      form.querySelector('button[type="submit"]').focus();
-    });
-    form.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape') form.querySelector('.cancel-delete').click();
-    });
+  document.addEventListener('DOMContentLoaded', function () {
+    markOverdueTasks();
+    initUndoDelete();
   });
-
-        undoBtn.addEventListener('click', cancelPending);
-      }
-
-      document.addEventListener('DOMContentLoaded', function () {
-        markOverdueTasks();
-        initUndoDelete();
-      });
-    })();
+})();
 
 document.querySelectorAll('.show-password').forEach(function (btn) {
   btn.addEventListener('click', function () {
