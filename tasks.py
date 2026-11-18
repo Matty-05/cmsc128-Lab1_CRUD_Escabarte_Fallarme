@@ -15,7 +15,7 @@ SORT_COLUMNS = {
     "priority": "CASE priority WHEN 'High' THEN 3 WHEN 'Medium' THEN 2 WHEN 'Low' THEN 1 END",
 }
 
-def get_filtered_tasks():
+def get_filtered_tasks(active_list):
     db = get_db()
     sort_by = request.args.get("sort_by", "created_at")
     sort_order = request.args.get("sort_order", "desc")
@@ -24,7 +24,6 @@ def get_filtered_tasks():
     filter_priority = request.args.get("filter_priority", "")
 
     # Personal shows only my tasks outside any list; a shared list shows all of its tasks.
-    active_list = get_active_list()
     if active_list is None:
         condition_strings = ["user_id = ? AND list_id IS NULL"]
         parameter_values = [g.user["id"]]
@@ -59,7 +58,9 @@ def get_filtered_tasks():
 @bp.route("/")
 @login_required
 def index():
-    return render_template("index.html", tasks=get_filtered_tasks(), **get_list_bar_data())
+    # Look up the active list once and share it, instead of each helper querying it again.
+    active_list = get_active_list()
+    return render_template("index.html", tasks=get_filtered_tasks(active_list), **get_list_bar_data(active_list))
 
 @bp.route("/add", methods=["POST"])
 @login_required
@@ -115,7 +116,8 @@ def edit_task_form(task_id):
     ).fetchone()
     if task is None:
         abort(404)
-    return render_template("edit.html", task=task, tasks=get_filtered_tasks(), **get_list_bar_data())
+    active_list = get_active_list()
+    return render_template("edit.html", task=task, tasks=get_filtered_tasks(active_list), **get_list_bar_data(active_list))
 
 @bp.route("/edit/<int:task_id>", methods=["POST"])
 @login_required

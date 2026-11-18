@@ -33,8 +33,7 @@ def get_my_lists():
     ).fetchall()
 
 # Everything _list_bar.html needs. Used by the To-Do List and Edit pages.
-def get_list_bar_data():
-    active_list = get_active_list()
+def get_list_bar_data(active_list):
     members = []
     if active_list is not None:
         members = get_db().execute(

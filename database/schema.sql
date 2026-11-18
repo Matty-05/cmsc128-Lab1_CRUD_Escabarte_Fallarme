@@ -41,3 +41,10 @@ CREATE TABLE IF NOT EXISTS password_resets (
     expires_at TEXT NOT NULL,
     used INTEGER NOT NULL DEFAULT 0
 );
+
+-- Every task query filters by owner or list, and every membership check by user.
+CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks(user_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_list_id ON tasks(list_id);
+CREATE INDEX IF NOT EXISTS idx_list_members_user_id ON list_members(user_id);
+-- Login and add-member compare usernames ignoring case.
+CREATE INDEX IF NOT EXISTS idx_users_username_nocase ON users(username COLLATE NOCASE);
