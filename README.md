@@ -4,6 +4,8 @@ A multi-user To-Do List application built for CMSC 128 Laboratory Activities 1 t
 
 **Status:** Working
 
+**Live app:** https://cmsc128todo.pythonanywhere.com (see [Lab 4 full deployment on PythonAnywhere](#lab-4-full-deployment-on-pythonanywhere))
+
 ## Authors
 
 - Ralph Ryan T. Escabarte (RalphREE)
@@ -506,3 +508,59 @@ Keep both terminals open and use the HTTPS forwarding URL printed by ngrok. Use 
 To verify access from another network, keep Flask and ngrok running on the computer. Turn off Wi-Fi on a phone, confirm mobile data is on, and open the HTTPS URL shown next to **Forwarding** in the ngrok terminal. Sign in with a demo account and add or edit a task, then refresh to confirm it was saved. Check shared-list switching, delete confirmation and Undo, and logout. If the URL fails on mobile data, record the browser error or `ERR_NGROK` code with the test result.
 
 Stop ngrok after the demo to close public access.
+
+## Lab 4 full deployment on PythonAnywhere
+
+The app is hosted at **https://cmsc128todo.pythonanywhere.com**. It stays online without our computers running, unlike the ngrok demo.
+
+### How to access it
+
+1. Open the link in any browser, on a computer or phone.
+2. Click **Sign up** and create an account. No demo passwords are published here.
+3. To try shared lists, create a second account (for example in a private window), create a list with the first account, and add the second one by username or email.
+
+The live site uses the same demo-mode password recovery described in [Password Recovery](#password-recovery), so use test accounts only.
+
+### Why PythonAnywhere
+
+The app stores its data in a SQLite file (`database/todo.db`). PythonAnywhere's free tier keeps files on a persistent disk, so accounts and tasks survive restarts. Free tiers that wipe the disk on every restart or redeploy would delete the database.
+
+### How it was set up
+
+1. Cloned the `act4-refactor` branch into a Bash console on PythonAnywhere and installed `requirements.txt` in a Python 3.12 virtualenv.
+2. Created a `.env` on the server with a new random `SECRET_KEY`. It is different from our local keys and is not in Git.
+3. Ran `init_db()` once to create `database/todo.db` with the tables and indexes.
+4. Added a web app with **Manual configuration** (Python 3.12), set the source code folder and virtualenv, and pointed the WSGI file at the app:
+
+   ```python
+   import sys
+
+   path = "/home/CMSC128ToDo/cmsc128-Lab1_CRUD_Escabarte_Fallarme"
+   if path not in sys.path:
+       sys.path.insert(0, path)
+
+   from app import app as application
+   ```
+
+5. Turned on **Force HTTPS**, so passwords and session cookies are always encrypted.
+
+PythonAnywhere runs the app with its own WSGI server, so the `app.run(debug=True)` block in `app.py` never runs there and the debugger is off.
+
+### Updating the live site
+
+In a PythonAnywhere Bash console:
+
+```bash
+cd ~/cmsc128-Lab1_CRUD_Escabarte_Fallarme && git pull
+```
+
+Then click **Reload** on the Web tab. `.env` and `todo.db` are not tracked by Git, so pulling never overwrites the key or the data.
+
+The free tier disables the site after one month unless someone logs in to PythonAnywhere and clicks **Run until 1 month from today** on the Web tab.
+
+### What we tested on the live site
+
+- Sign up, login, logout, and adding, editing, toggling, and deleting tasks, with Undo and with the delete going through after a refresh.
+- A shared list between two accounts: adding a member, "Added by", and a toggle by one account showing for the other.
+- Privacy: one account's personal tasks do not appear for the other.
+- Opening the site on a phone over mobile data.
