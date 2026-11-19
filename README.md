@@ -140,7 +140,7 @@ Then open http://127.0.0.1:5000 in a browser.
 
 The SQLite database file (`database/todo.db`) is created automatically on first run and is **not** tracked by Git. After pulling the Activity 3 schema changes, delete the old `database/todo.db` once so the app can recreate it with task ownership and shared-list tables.
 
-Run the app with `python app.py`, not `flask run`, because `init_db()` only runs from `app.py`.
+For local development, `python app.py` calls `init_db()` before starting Flask. For the [ngrok demo](#lab-4-demo-deployment-with-ngrok), the setup runs `init_db()` in a separate command before `python -m flask --app app run`, so the database is ready and Flask can run without the debugger.
 
 ### Seed demo data
 
@@ -209,6 +209,12 @@ We built Activity 2 on top of Activity 1 instead of as a separate app: `act2-acc
 - [x] Add a list member by username or email
 - [x] Switch between personal tasks and accessible shared lists
 - [x] Persist users, tasks, lists, memberships, and the active-list selection
+
+### Frontend / UX
+
+- **Task editing and completion.** The Add/Edit panel stays visible beside the task list on desktop. Clicking **Edit** or toggling a task's checkbox keeps the selected row in view and preserves filters and sorting. On narrow screens, the layout uses one column and **Edit** scrolls the form into view.
+- **Delete and Undo.** A centered dialog names the task, focuses **Cancel** first, and explains the three-second Undo window. After confirmation, the Undo toast appears at the bottom of the screen. Pressing **Undo** before the timer ends keeps the task.
+- **Feedback and errors.** Forms disable their submit buttons during submission, and a shared component styles flash messages consistently. The app uses a branded template for HTTP 400, 403, 404, 405, and 500 responses.
 
 ## Data Operations
 
@@ -447,6 +453,6 @@ ngrok http 5000
 
 Keep both terminals open and use the HTTPS forwarding URL printed by ngrok. Use demo accounts only: password recovery currently displays reset links on screen. This temporary classroom demo uses the Flask development server; it is not a production deployment.
 
-To verify access from another network, turn off Wi-Fi on a phone and open that HTTPS URL over mobile data. Check signup/login, personal task CRUD, shared-list switching and membership, delete confirmation and Undo, profile updates, and logout. Refresh after saving to confirm persistence. Check that another user's personal task and a non-member's list return the styled 404 page.
+To verify access from another network, keep Flask and ngrok running on the computer. Turn off Wi-Fi on a phone, confirm mobile data is on, and open the HTTPS URL shown next to **Forwarding** in the ngrok terminal. Sign in with a demo account and add or edit a task, then refresh to confirm it was saved. Check shared-list switching, delete confirmation and Undo, and logout. If the URL fails on mobile data, record the browser error or `ERR_NGROK` code with the test result.
 
 Stop ngrok after the demo to close public access.
