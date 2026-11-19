@@ -1,6 +1,6 @@
-# CMSC 128 Lab 3 — Multi-User CRUD with UBAC
+# CMSC 128 Lab 4 — Refactor and Deployment
 
-A multi-user To-Do List application built for CMSC 128 Laboratory Activities 1 to 3. Lab 1 added task CRUD operations. Lab 2 added accounts and sessions. Lab 3 adds user-based access control (UBAC), personal tasks, and shared lists.
+A multi-user To-Do List application built for CMSC 128 Laboratory Activities 1 to 4. Lab 1 added task CRUD operations. Lab 2 added accounts and sessions. Lab 3 added user-based access control (UBAC), personal tasks, and shared lists. Lab 4 refactors the code, optimizes the database queries, polishes the UI, and deploys the app.
 
 **Status:** Working
 
@@ -72,12 +72,12 @@ auth library, so we can explain every step ourselves:
 
 ### Installation
 
-Clone the repository, move into it, and switch to the Lab 3 branch:
+Clone the repository, move into it, and switch to the Lab 4 branch:
 
 ```bash
 git clone https://github.com/Matty-05/cmsc128-Lab1_CRUD_Escabarte_Fallarme
 cd cmsc128-Lab1_CRUD_Escabarte_Fallarme
-git checkout act3-ubac
+git checkout act4-refactor
 ```
 
 Create and activate a virtual environment:
@@ -168,6 +168,8 @@ The script adds four personal tasks to each account, creates a `Demo Group List`
 | `act2-accounts` | Activity 2 (accounts), branched from `main` |
 | `act3-ubac` | Activity 3 (UBAC), branched from `act2-accounts` |
 | `escabarte-act3`, `fallarme-act3` | Each partner's work, merged into `act3-ubac` through pull requests |
+| `act4-refactor` | Activity 4 (refactor and deployment), branched from `act3-ubac` |
+| `escabarte-act4`, `fallarme-act4` | Each partner's work, merged into `act4-refactor` through pull requests |
 
 **Strategy**
 
@@ -210,21 +212,69 @@ We built Activity 2 on top of Activity 1 instead of as a separate app: `act2-acc
 - [x] Switch between personal tasks and accessible shared lists
 - [x] Persist users, tasks, lists, memberships, and the active-list selection
 
+## Lab 4 Refactor and Optimization
+
+### Backend
+
+**Split `app.py` into blueprints.** `app.py` had grown to 591 lines with the database code, login, password reset, registration, profile, tasks, and shared lists all in one file. It is now split by concern using Flask blueprints:
+
+| File | Contents |
+| ---- | -------- |
+| `app.py` | Creates the app, registers the blueprints, `init_db()`, error pages |
+| `db.py` | `get_db()` and `close_db()` |
+| `auth.py` | `login_required`, loading the logged-in user, login, logout, sign up, password reset, profile |
+| `tasks.py` | Task routes and `get_filtered_tasks()` |
+| `lists.py` | Shared list routes, `get_active_list()`, `get_my_lists()` |
+
+The SQL and the ownership checks were moved without changes, so UBAC works exactly as in Lab 3. Endpoint names now include the blueprint, for example `url_for('tasks.index')` instead of `url_for('index')`.
+
+**Added indexes.** SQLite only indexes primary keys and `UNIQUE` columns automatically, and every UBAC query filters on foreign keys. Without an index, those queries read every row of the table (a `SCAN`). `database/schema.sql` now adds four indexes:
+
+| Index | Used by | Before | After |
+| ----- | ------- | ------ | ----- |
+| `idx_tasks_user_id` | Personal task list | `SCAN tasks` | `SEARCH tasks USING INDEX` |
+| `idx_tasks_list_id` | Shared list tasks | `SCAN tasks` | `SEARCH tasks USING INDEX` |
+| `idx_list_members_user_id` | Membership checks in toggle, edit, delete, and the list switcher | `SCAN list_members` | `SEARCH list_members USING INDEX` |
+| `idx_users_username_nocase` | Login and add member | `SCAN users` | `SEARCH users USING INDEX` |
+
+The last one is needed because the existing `UNIQUE` index on `username` is case-sensitive, while login compares usernames with `COLLATE NOCASE`, so SQLite could not use it. The indexes use `CREATE INDEX IF NOT EXISTS`, so `init_db()` adds them to an existing database without resetting it. To see the difference, run this in a DB viewer:
+
+```sql
+EXPLAIN QUERY PLAN SELECT * FROM tasks WHERE user_id = 1;
+```
+
+With only a few demo tasks the speed difference cannot be measured, but a `SEARCH` stays fast as the tables grow, while a `SCAN` gets slower with every row.
+
+**Removed a repeated query.** The To-Do List page called `get_active_list()` twice, once for the task list and once for the list bar, so the same membership query ran twice. The route now looks up the active list once and passes it to both helpers:
+
+| Page | Queries before | Queries after |
+| ---- | -------------- | ------------- |
+| To-Do List (`/`) | 6 | 5 |
+| Edit (`/edit/<id>`) | 7 | 6 |
+
+The membership check inside `get_active_list()` is unchanged; it just runs once per page.
+
+**Kept the `added_by` subquery.** The task list gets each task's creator with `(SELECT display_name FROM users WHERE users.id = tasks.user_id)`. This is not an N+1 problem: it is still one SQL statement and one round trip, and `EXPLAIN QUERY PLAN` shows SQLite looks each creator up by primary key, which is the same work a `JOIN` would do.
+
+After every change, we logged in as two accounts and tried each other's task and list IDs to confirm the ownership checks still return 404 or 403.
+
 ## Data Operations
 
 ### Task routes
 
-| Method | Route                  | Function          | Description |
-| ------ | ---------------------- | ----------------- | ----------- |
-| GET    | `/`                    | `index`           | Show tasks from the active personal or shared list |
-| POST   | `/add`                 | `add_task`        | Create a task in the active personal or shared list |
-| GET    | `/edit/<id>`           | `edit_task_form`  | Show an accessible task for editing |
-| POST   | `/edit/<id>`           | `edit_task`       | Update an accessible task |
-| POST   | `/toggle/<id>`         | `toggle_task`     | Change an accessible task's completion state |
-| POST   | `/delete/<id>`         | `delete_task`     | Delete an accessible task |
-| POST   | `/lists`               | `create_list`     | Create a shared list and add its owner as a member |
-| POST   | `/lists/switch`        | `switch_list`     | Store an accessible list in `session["list_id"]` |
-| POST   | `/lists/<id>/members`  | `add_list_member` | Add a member by username or email |
+| Method | Route                  | Endpoint                | Description |
+| ------ | ---------------------- | ----------------------- | ----------- |
+| GET    | `/`                    | `tasks.index`           | Show tasks from the active personal or shared list |
+| POST   | `/add`                 | `tasks.add_task`        | Create a task in the active personal or shared list |
+| GET    | `/edit/<id>`           | `tasks.edit_task_form`  | Show an accessible task for editing |
+| POST   | `/edit/<id>`           | `tasks.edit_task`       | Update an accessible task |
+| POST   | `/toggle/<id>`         | `tasks.toggle_task`     | Change an accessible task's completion state |
+| POST   | `/delete/<id>`         | `tasks.delete_task`     | Delete an accessible task |
+| POST   | `/lists`               | `lists.create_list`     | Create a shared list and add its owner as a member |
+| POST   | `/lists/switch`        | `lists.switch_list`     | Store an accessible list in `session["list_id"]` |
+| POST   | `/lists/<id>/members`  | `lists.add_list_member` | Add a member by username or email |
+
+The endpoint is `blueprint.function`: `tasks.*` routes are in `tasks.py`, `lists.*` in `lists.py`, and `auth.*` in `auth.py`.
 
 A missing `<id>` returns **404**. Every write redirects back to the list,
 carrying the current query string so the active filter and sort survive the
@@ -250,16 +300,16 @@ The list bar shows **My tasks** and every shared list the user can access. A sha
 
 ### Account routes
 
-| Method   | Route                     | Function          | Description |
-| -------- | ------------------------- | ----------------- | ----------- |
-| GET      | `/signup`                 | `register_form`   | Show the sign up form (logged-in users are sent to the To-Do List) |
-| POST     | `/signup`                 | `register`        | Validate, hash the password, create the account, log in, and open the To-Do List |
-| GET/POST | `/login`                  | `login`           | Show the login form / check the password and start a session |
-| POST     | `/logout`                 | `logout`          | Clear the session (GET returns 405) |
-| GET      | `/profile`                | `profile_form`    | Show the profile page (login required) |
-| POST     | `/profile`                | `update_profile`  | `action=details` updates name and username; `action=password` changes the password (login required) |
-| GET/POST | `/forgot-password`        | `forgot_password` | Request a password reset link by username or email |
-| GET/POST | `/reset-password/<token>` | `reset_password`  | Show the reset form / set a new password if the token is valid |
+| Method   | Route                     | Endpoint               | Description |
+| -------- | ------------------------- | ---------------------- | ----------- |
+| GET      | `/signup`                 | `auth.register_form`   | Show the sign up form (logged-in users are sent to the To-Do List) |
+| POST     | `/signup`                 | `auth.register`        | Validate, hash the password, create the account, log in, and open the To-Do List |
+| GET/POST | `/login`                  | `auth.login`           | Show the login form / check the password and start a session |
+| POST     | `/logout`                 | `auth.logout`          | Clear the session (GET returns 405) |
+| GET      | `/profile`                | `auth.profile_form`    | Show the profile page (login required) |
+| POST     | `/profile`                | `auth.update_profile`  | `action=details` updates name and username; `action=password` changes the password (login required) |
+| GET/POST | `/forgot-password`        | `auth.forgot_password` | Request a password reset link by username or email |
+| GET/POST | `/reset-password/<token>` | `auth.reset_password`  | Show the reset form / set a new password if the token is valid |
 
 ### Database tables
 
