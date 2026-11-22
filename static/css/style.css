@@ -19,6 +19,9 @@
 
 * { box-sizing: border-box; }
 
+/* Always show the scrollbar, so short and long pages stay centered the same. */
+html { overflow-y: scroll; }
+
 
 body {
   margin: 0;
@@ -45,61 +48,77 @@ body {
   font-size: 0.9rem;
 }
 
-.undo-modal {
+.task-toast {
   position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
   z-index: 1000;
   display: flex;
   align-items: center;
   gap: 16px;
-  background: #1f2937;
-  color: #f9fafb;
+  background: var(--surface);
+  color: var(--text);
   padding: 12px 18px;
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--primary);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
   font-size: 0.95rem;
-  animation: undo-toast-in 0.2s ease-out;
+  animation: task-toast-in 0.2s ease-out;
+  width: max-content;
   max-width: calc(100vw - 32px);
+  max-height: calc(100dvh - 40px);
+  overflow: auto;
+  flex-wrap: wrap;
 }
 
-.undo-modal[hidden] {
+dialog.task-toast {
+  inset: 0;
+  margin: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  width: min(400px, calc(100vw - 32px));
+  height: fit-content;
+  padding: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+#undo-modal {
+  inset: auto 0 calc(20px + env(safe-area-inset-bottom, 0px));
+  margin: 0 auto;
+}
+
+.task-toast[hidden], dialog.task-toast:not([open]) {
   display: none;
 }
 
-.undo-modal #undo-message {
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+dialog.task-toast::backdrop { background: rgb(23 43 77 / 40%); }
+.task-toast h2 { margin: 0 0 0.25rem; font-size: 1rem; color: var(--text); }
+.task-toast p { margin: 0; max-width: 36ch; overflow-wrap: anywhere; }
+dialog.task-toast p { max-width: none; }
+dialog.task-toast .delete-undo-hint { margin-top: 0.25rem; color: var(--text-muted); }
+.toast-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; }
+
+.task-toast .toast-button {
+  min-height: 44px;
+  background: var(--surface);
+  border-color: var(--control-border);
+  color: var(--text);
 }
 
-.undo-modal #undo-btn {
-  flex-shrink: 0;
-  background: #f9fafb;
-  color: #1f2937;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
+.task-toast .toast-button:hover { background: var(--bg); }
+.task-toast #undo-btn { background: var(--primary); border-color: var(--primary); color: var(--surface); }
+.task-toast #undo-btn:hover { background: var(--primary-dark); }
+.task-toast .toast-danger { background: var(--danger-text); border-color: var(--danger-text); color: var(--surface); }
+.task-toast .toast-danger:hover { background: #a32100; }
+.task-toast .toast-button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .task-toast { animation: none; }
 }
 
-.undo-modal #undo-btn:hover {
-  background: #e5e7eb;
-}
-
-@keyframes undo-toast-in {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -12px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
+@keyframes task-toast-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .layout {
@@ -263,6 +282,7 @@ body {
 }
 
 .task-item:last-child { border-bottom: none; }
+.task-item { scroll-margin-top: 1rem; }
 
 .task-item input[type="checkbox"] {
   width: 18px;
@@ -338,6 +358,7 @@ body {
 
 .task-actions {
   display: flex;
+  align-items: flex-start;
   gap: 0.35rem;
   flex-shrink: 0;
 }
@@ -371,4 +392,253 @@ body {
   color: var(--text-muted);
   padding: 1.5rem 0;
   font-style: italic;
+}
+
+.header-inner {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.account-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.greeting { margin-right: 0.5rem; }
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.9rem;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.nav-link:hover { background: rgba(255, 255, 255, 0.12); }
+.nav-link:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* The page you are on */
+.nav-link[aria-current="page"] { background: rgba(255, 255, 255, 0.18); }
+
+/* Log out, and Log in / Sign up when not the current page */
+.nav-outline,
+.nav-link[data-outline] { border-color: rgba(255, 255, 255, 0.6); }
+
+.logout-form { margin: 0; }
+
+/* Log in / Sign up card */
+.auth-layout {
+  display: flex;
+  justify-content: center;
+  padding: 3rem 1rem 0;
+}
+
+.auth-card { width: 100%; max-width: 420px; }
+.auth-card h2 { font-size: 1.4rem; margin-bottom: 0.25rem; }
+
+.auth-intro {
+  margin: 0 0 1.25rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.auth-form .field { margin-bottom: 1rem; }
+
+/* Auth fields are 44px tall so they are easy to tap */
+.auth-form .field input { min-height: 44px; }
+
+.password-wrap { position: relative; }
+.password-wrap input { padding-right: 4.5rem; }
+
+.show-password {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  padding: 0.35rem 0.6rem;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #42526e;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.show-password:hover { background: #ebecf0; }
+
+.btn-block {
+  width: 100%;
+  min-height: 44px;
+}
+
+.auth-switch {
+  margin: 1.25rem 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* Second line under the first ("Forgot your password?") sits closer */
+.auth-switch + .auth-switch { margin-top: 0.5rem; }
+
+/* App blue instead of the browser's default blue/purple link colour */
+.auth-switch a {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+/* Field-level feedback */
+.field-hint {
+  margin: 0.3rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.field-error {
+  margin: 0.3rem 0 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--danger-text);
+}
+
+.field input.invalid {
+  border: 2px solid var(--danger);
+  background: #fff;
+}
+
+.form-success {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.65rem;
+  background: #e3fcef;
+  border-left: 3px solid var(--priority-low);
+  color: #006644;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 4px;
+}
+
+/* Profile page */
+.profile-layout {
+  max-width: 640px;
+  margin: 1.75rem auto;
+  padding: 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.page-title { margin: 0; font-size: 1.5rem; }
+.profile-layout .auth-intro { margin: 0.15rem 0 0; }
+.profile-layout .form-success { margin: 0; }
+
+/* A link styled as a full-width button ("Request a new link") */
+a.btn-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+/* Password recovery: demo box that shows the reset link instead of emailing it */
+.demo-box {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #fafbfc;
+  border: 1px dashed var(--control-border);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+}
+
+.demo-box p { margin: 0 0 0.4rem; }
+
+.demo-label {
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.demo-link {
+  color: var(--primary);
+  font-weight: 600;
+  word-break: break-all;
+}
+
+/* List switcher (Lab 3) */
+.list-bar { grid-column: 1 / -1; }
+
+.list-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.list-tab {
+  min-height: 44px;
+  padding: 0 0.9rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--text);
+  background: #fafbfc;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.list-tab:hover { background: #ebecf0; }
+.list-tab:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* The list you are viewing */
+.list-tab[aria-current="true"] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.list-owner { font-weight: 400; font-size: 0.85rem; }
+
+.list-members {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.list-forms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.list-forms .field { margin-bottom: 0; }
+
+.inline-field { display: flex; gap: 0.5rem; }
+
+.task-form-panel { position: sticky; top: 1rem; }
+.layout > *, .field, .inline-field input { min-width: 0; }
+.flash-messages { max-width: 1000px; margin: 1rem auto; padding: 0 1rem; }
+button:disabled, input[type="submit"]:disabled { opacity: 0.6; cursor: wait; }
+.list-tab, .list-members, .greeting { overflow-wrap: anywhere; }
+
+@media (max-width: 800px) {
+  .task-form-panel { position: static; }
+}
+
+@media (max-width: 480px) {
+  .field-row, .list-forms { grid-template-columns: minmax(0, 1fr); }
+  .inline-field, .form-actions { flex-wrap: wrap; }
+  .task-item { flex-wrap: wrap; }
+  .task-actions { width: 100%; justify-content: flex-end; }
+  .list-header { flex-wrap: wrap; }
 }
