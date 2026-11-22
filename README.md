@@ -74,12 +74,11 @@ auth library, so we can explain every step ourselves:
 
 ### Installation
 
-Clone the repository, move into it, and switch to the Lab 4 branch:
+Clone the repository and move into it. The final app is on `main`:
 
 ```bash
 git clone https://github.com/Matty-05/cmsc128-Lab1_CRUD_Escabarte_Fallarme
 cd cmsc128-Lab1_CRUD_Escabarte_Fallarme
-git checkout act4-refactor
 ```
 
 Create and activate a virtual environment:
@@ -166,7 +165,7 @@ The script adds four personal tasks to each account, creates a `Demo Group List`
 
 | Branch | Purpose |
 |---|---|
-| `main` | Activity 1 (CRUD To-Do List), final commit `cmsc128-Pair-Act1-finalX` |
+| `main` | Final app. Activity 1 ended at `cmsc128-Pair-Act1-finalX`; Activity 4 was merged in with `cmsc128-Final-Lab` |
 | `act2-accounts` | Activity 2 (accounts), branched from `main` |
 | `act3-ubac` | Activity 3 (UBAC), branched from `act2-accounts` |
 | `escabarte-act3`, `fallarme-act3` | Each partner's work, merged into `act3-ubac` through pull requests |
